@@ -23,6 +23,8 @@ public final class EngineTestSuite {
         builtInFunctionsRadians();
         degreeMode();
         customFunctions();
+        multipleArguments();
+        scalarCompatibility();
         persistenceAndDeletion();
         unicodeAndWhitespace();
         invalidExpressions();
@@ -96,7 +98,7 @@ public final class EngineTestSuite {
                 {"cbrt(-8)", -2.0}, {"ln(e)", 1.0}, {"log(1000)", 3.0},
                 {"exp(0)", 1.0}, {"exp(1)", Math.E}, {"abs(-4.5)", 4.5},
                 {"floor(2.9)", 2.0}, {"floor(-2.1)", -3.0}, {"ceil(2.1)", 3.0},
-                {"ceil(-2.9)", -2.0}, {"round(2.5)", 2.0}, {"round(3.5)", 4.0},
+                {"ceil(-2.9)", -2.0}, {"round(2.5)", 3.0}, {"round(3.5)", 4.0},
                 {"sinh(0)", 0.0}, {"cosh(0)", 1.0}, {"tanh(0)", 0.0}
         };
         values(e, cases);
@@ -146,6 +148,86 @@ public final class EngineTestSuite {
         e.evaluate("g(x)=f(x)*2");
         e.evaluate("h(x)=g(x)+f(x)");
         near("three-level composition", 12, e.evaluate("h(3)"));
+    }
+
+    private static void multipleArguments() {
+        ExpressionEngine e = new ExpressionEngine();
+        e.evaluate("add(x,y)=x+y");
+        text("two-parameter definition", "add(x,y)", e.getDefinitionText());
+        near("two-parameter call", 7, e.evaluate("add(3,4)"));
+        near("colon argument separator", 7, e.evaluate("add(3:4)"));
+        e.evaluate("weighted(x,y,w)=x*w+y*(1-w)");
+        near("three-parameter call", 17.5, e.evaluate("weighted(10,20,.25)"));
+        e.evaluate("sum4(a,b,c,d)=a+b+c+d");
+        near("four-parameter call", 10, e.evaluate("sum4(1,2,3,4)"));
+        e.evaluate("nested(a,b)=add(a,b)*add(b,a)");
+        near("nested multi-argument call", 49, e.evaluate("nested(3,4)"));
+
+        e.evaluate("x=100");
+        e.evaluate("pair(x,y)=x-y");
+        near("multiple parameters shadow globals", 6, e.evaluate("pair(10,4)"));
+        near("shadowed global restored", 100, e.evaluate("x"));
+
+        String saved = e.serializeFunctions();
+        ExpressionEngine restored = new ExpressionEngine();
+        restored.loadFunctions(saved);
+        near("multi-parameter persistence", 9, restored.evaluate("add(4,5)"));
+        restored.evaluate("undef(add)");
+        text("multi-parameter deletion text", "add(x,y)", restored.getDeletionText());
+
+        error(e, "pair(1)", "expects 2 argument(s), got 1");
+        error(e, "pair(1,2,3)", "expects 2 argument(s), got 3");
+        error(e, "sqrt()", "expects 1 argument(s), got 0");
+        error(e, "sqrt(1,2)", "expects 1 argument(s), got 2");
+        error(e, "bad(x,x)=x", "Duplicate function parameter");
+    }
+
+    private static void scalarCompatibility() {
+        ExpressionEngine e = new ExpressionEngine();
+        values(e, new Object[][] {
+                {"asinh(0)", 0.0}, {"asinh(1)", Math.log(1 + Math.sqrt(2))},
+                {"acosh(1)", 0.0}, {"acosh(2)", Math.log(2 + Math.sqrt(3))},
+                {"atanh(0)", 0.0}, {"atanh(.5)", 0.5 * Math.log(3)},
+                {"log2(1)", 0.0}, {"log2(8)", 3.0}, {"log2(.5)", -1.0},
+                {"fact(0)", 1.0}, {"fact(6)", 720.0}, {"gamma(1)", 1.0},
+                {"gamma(5)", 24.0}, {"gamma(.5)", Math.sqrt(Math.PI)},
+                {"trunc(2.9)", 2.0}, {"trunc(-2.9)", -2.0},
+                {"round(1.2345,2)", 1.23}, {"round(1.235,2)", 1.24},
+                {"round(-1.235,2)", -1.24}, {"trunc(1.239,2)", 1.23},
+                {"trunc(-1.239,2)", -1.23}, {"ipart(3.9)", 3.0},
+                {"ipart(-3.9)", -3.0}, {"fpart(3.25)", .25},
+                {"fpart(-3.25)", -.25}, {"sign(-8)", -1.0}, {"sign(0)", 0.0},
+                {"sign(8)", 1.0}, {"hypot(3,4)", 5.0}, {"rtopr(5,12)", 13.0},
+                {"atan2(1,1)", Math.PI / 4}, {"rtopd(1,1)", Math.PI / 4},
+                {"ptorx(2,0)", 2.0}, {"ptory(2,pi/2)", 2.0},
+                {"npr(5,2)", 20.0}, {"ncr(5,2)", 10.0}, {"ncr(20,0)", 1.0},
+                {"ncr(20,20)", 1.0}, {"gcd(54,24)", 6.0},
+                {"gcd(48,18,30)", 6.0}, {"lcm(4,6)", 12.0},
+                {"lcm(3,4,5)", 60.0}, {"gcd(0,0)", 0.0}, {"lcm(0,5)", 0.0},
+                {"modinv(3,11)", 4.0}, {"modpow(2,10,1000)", 24.0},
+                {"modpow(7,0,13)", 1.0}, {"phi(0)", 0.0}, {"phi(1)", 1.0},
+                {"phi(9)", 6.0}, {"phi(36)", 12.0}, {"isprime(1)", 0.0},
+                {"isprime(2)", 1.0}, {"isprime(97)", 1.0}, {"isprime(99)", 0.0},
+                {"nextprime(14)", 17.0}, {"nextprime(17)", 17.0},
+                {"prevprime(14)", 13.0}, {"prevprime(13)", 13.0},
+                {"if(1,10,20)", 10.0}, {"if(0,10,20)", 20.0}
+        });
+
+        e.setDegrees(true);
+        values(e, new Object[][] {
+                {"atan2(1,1)", 45.0}, {"rtopd(1,1)", 45.0},
+                {"ptorx(2,60)", 1.0}, {"ptory(2,30)", 1.0}
+        });
+
+        errors(e, new Object[][] {
+                {"acosh(.5)", "Result is not finite"}, {"atanh(1)", "Result is not finite"},
+                {"gamma(0)", "Gamma pole"}, {"fact(1.5)", "Factorial requires an integer"},
+                {"ncr(3,4)", "0 <= r <= n"}, {"npr(-1,1)", "0 <= r <= n"},
+                {"gcd()", "at least 1 argument"}, {"modinv(2,4)", "does not exist"},
+                {"modpow(2,-1,5)", "non-negative exponent"}, {"phi(-1)", "non-negative integer"},
+                {"prevprime(1)", "No previous prime"}, {"round(1,2,3)", "expects 1 or 2"},
+                {"ncr(5)", "expects 2 argument(s)"}, {"if(1,2)", "expects 3 argument(s)"}
+        });
     }
 
     private static void persistenceAndDeletion() {
