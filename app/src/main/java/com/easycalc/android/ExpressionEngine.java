@@ -15,6 +15,8 @@ public final class ExpressionEngine {
     private boolean degrees;
     private boolean definition;
     private String definitionText;
+    private boolean deletion;
+    private String deletionText;
     private int recursionDepth;
 
     private static final class UserFunction {
@@ -35,6 +37,8 @@ public final class ExpressionEngine {
 
     public boolean lastEvaluationWasDefinition() { return definition; }
     public String getDefinitionText() { return definitionText; }
+    public boolean lastEvaluationWasDeletion() { return deletion; }
+    public String getDeletionText() { return deletionText; }
 
     public String serializeFunctions() {
         StringBuilder result = new StringBuilder();
@@ -58,6 +62,9 @@ public final class ExpressionEngine {
     public double evaluate(String expression) {
         definition = false;
         definitionText = null;
+        deletion = false;
+        deletionText = null;
+        if (deleteFunction(expression)) return ans;
         if (defineFunction(expression)) return ans;
         input = expression.trim().replace('×', '*').replace('÷', '/');
         pos = 0;
@@ -68,6 +75,19 @@ public final class ExpressionEngine {
         ans = value;
         variables.put("ans", ans);
         return value;
+    }
+
+    private boolean deleteFunction(String source) {
+        String trimmed = source.trim();
+        if (!trimmed.toLowerCase(Locale.ROOT).startsWith("undef(")) return false;
+        if (!trimmed.endsWith(")")) throw error("Expected ')' after function name");
+        String name = normalizeName(trimmed.substring(6, trimmed.length() - 1).trim());
+        if (!validName(name)) throw error("Invalid function name");
+        UserFunction removed = functions.remove(name);
+        if (removed == null) throw error("Unknown function: " + name);
+        deletion = true;
+        deletionText = name + "(" + removed.parameter + ")";
+        return true;
     }
 
     private boolean defineFunction(String source) {
