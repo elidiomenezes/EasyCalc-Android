@@ -15,7 +15,6 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
@@ -26,7 +25,9 @@ jobs:
           java -cp build/engine-test EngineSmokeTest
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
+      - name: Name APK
+        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/EasyCalc-Android-v0.1.0-debug.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: EasyCalc-Android-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: EasyCalc-Android-v0.1.0-debug
+          path: app/build/outputs/apk/debug/EasyCalc-Android-v0.1.0-debug.apk

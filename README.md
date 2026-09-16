@@ -19,7 +19,7 @@ The untouched EasyCalc 1.25 source release remains available from the original S
 gradle assembleDebug
 ```
 
-The APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
+The APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Every pull request runs the engine smoke tests and a clean Android debug build.
 
 ## Roadmap
 
