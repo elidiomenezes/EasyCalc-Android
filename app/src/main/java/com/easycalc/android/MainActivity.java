@@ -90,7 +90,15 @@ public final class MainActivity extends Activity {
     }
 
     private void press(String key) {
-        if (key.equals("=")) evaluate();
+        if (key.equals("=")) {
+            String expression = input.getText().toString();
+            if (!expression.contains("=") && expression.trim().matches(
+                    "[A-Za-z][A-Za-z0-9_]*\\s*\\(\\s*[A-Za-z][A-Za-z0-9_]*\\s*\\)")) {
+                insert("=");
+            } else {
+                evaluate();
+            }
+        }
         else if (key.equals("C")) { input.setText(""); result.setText("0"); }
         else if (key.equals("⌫")) {
             int start = input.getSelectionStart();

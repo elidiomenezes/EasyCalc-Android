@@ -26,12 +26,14 @@ public final class EngineSmokeTest {
         e.evaluate("square(x)=x^2");
         if (!e.lastEvaluationWasDefinition()) throw new AssertionError("Definition not reported");
         assertNear(25, e.evaluate("square(5)"));
+        e.evaluate("square(x)=x^3");
+        assertNear(125, e.evaluate("square(5)"));
         e.evaluate("quad(x)=square(x)+2*x+1");
-        assertNear(16, e.evaluate("quad(3)"));
+        assertNear(34, e.evaluate("quad(3)"));
         String saved = e.serializeFunctions();
         ExpressionEngine restored = new ExpressionEngine();
         restored.loadFunctions(saved);
-        assertNear(36, restored.evaluate("square(6)"));
+        assertNear(216, restored.evaluate("square(6)"));
         e.setDegrees(true);
         assertNear(1, e.evaluate("sin(90)"));
         System.out.println("ExpressionEngine smoke tests passed");
