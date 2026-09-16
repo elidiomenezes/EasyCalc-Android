@@ -117,6 +117,14 @@ public final class MainActivity extends Activity {
         if (expression.trim().isEmpty()) return;
         try {
             double value = engine.evaluate(expression);
+            if (engine.lastEvaluationWasDeletion()) {
+                String rendered = "Deleted " + engine.getDeletionText();
+                result.setText(rendered);
+                history.append("\n" + expression + "\n  " + rendered + "\n");
+                getPreferences(MODE_PRIVATE).edit()
+                        .putString("functions", engine.serializeFunctions()).apply();
+                return;
+            }
             if (engine.lastEvaluationWasDefinition()) {
                 String rendered = "Defined " + engine.getDefinitionText();
                 result.setText(rendered);
