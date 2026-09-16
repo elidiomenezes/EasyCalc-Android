@@ -3,14 +3,28 @@ package com.easycalc.android;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 
 /** Recursive-descent expression engine for the first Android port milestone. */
 public final class ExpressionEngine {
     private final Map<String, Double> variables = new HashMap<>();
+    private final Map<String, UserFunction> functions = new HashMap<>();
     private String input;
     private int pos;
     private double ans;
     private boolean degrees;
+    private boolean definition;
+    private String definitionText;
+    private int recursionDepth;
+
+    private static final class UserFunction {
+        final String parameter;
+        final String expression;
+        UserFunction(String parameter, String expression) {
+            this.parameter = parameter;
+            this.expression = expression;
+        }
+    }
 
     public ExpressionEngine() {
         variables.put("pi", Math.PI);
@@ -19,7 +33,32 @@ public final class ExpressionEngine {
 
     public void setDegrees(boolean degrees) { this.degrees = degrees; }
 
+    public boolean lastEvaluationWasDefinition() { return definition; }
+    public String getDefinitionText() { return definitionText; }
+
+    public String serializeFunctions() {
+        StringBuilder result = new StringBuilder();
+        for (Map.Entry<String, UserFunction> entry : new TreeMap<>(functions).entrySet()) {
+            UserFunction function = entry.getValue();
+            result.append(entry.getKey()).append('\t').append(function.parameter).append('\t')
+                    .append(function.expression).append('\n');
+        }
+        return result.toString();
+    }
+
+    public void loadFunctions(String serialized) {
+        functions.clear();
+        if (serialized == null || serialized.isEmpty()) return;
+        for (String line : serialized.split("\\n")) {
+            String[] fields = line.split("\\t", 3);
+            if (fields.length == 3) functions.put(fields[0], new UserFunction(fields[1], fields[2]));
+        }
+    }
+
     public double evaluate(String expression) {
+        definition = false;
+        definitionText = null;
+        if (defineFunction(expression)) return ans;
         input = expression.trim().replace('×', '*').replace('÷', '/');
         pos = 0;
         double value = assignment();
@@ -29,6 +68,34 @@ public final class ExpressionEngine {
         ans = value;
         variables.put("ans", ans);
         return value;
+    }
+
+    private boolean defineFunction(String source) {
+        int equals = source.indexOf('=');
+        if (equals < 0) return false;
+        String left = source.substring(0, equals).trim();
+        String body = source.substring(equals + 1).trim();
+        int open = left.indexOf('(');
+        int close = left.lastIndexOf(')');
+        if (open <= 0 || close != left.length() - 1 || body.isEmpty()) return false;
+        String name = normalizeName(left.substring(0, open).trim());
+        String parameter = normalizeName(left.substring(open + 1, close).trim());
+        if (!validName(name) || !validName(parameter)) throw error("Invalid function definition");
+        if (name.equals("pi") || name.equals("e") || isBuiltIn(name))
+            throw error("Reserved function name: " + name);
+        functions.put(name, new UserFunction(parameter, body));
+        definition = true;
+        definitionText = name + "(" + parameter + ")";
+        return true;
+    }
+
+    private boolean validName(String name) {
+        if (name.isEmpty() || !Character.isLetter(name.charAt(0))) return false;
+        for (int i = 1; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (!Character.isLetterOrDigit(c) && c != '_') return false;
+        }
+        return true;
     }
 
     private double assignment() {
@@ -137,8 +204,10 @@ public final class ExpressionEngine {
         skipSpace();
         int start = pos;
         while (pos < input.length() && (Character.isLetterOrDigit(input.charAt(pos)) || input.charAt(pos) == '_')) pos++;
-        return input.substring(start, pos).toLowerCase(Locale.ROOT);
+        return normalizeName(input.substring(start, pos));
     }
+
+    private String normalizeName(String name) { return name.toLowerCase(Locale.ROOT); }
 
     private double function(String name, double x) {
         switch (name) {
@@ -160,7 +229,43 @@ public final class ExpressionEngine {
             case "sinh": return Math.sinh(x);
             case "cosh": return Math.cosh(x);
             case "tanh": return Math.tanh(x);
-            default: throw error("Unknown function: " + name);
+            default: return userFunction(name, x);
+        }
+    }
+
+    private boolean isBuiltIn(String name) {
+        switch (name) {
+            case "sin": case "cos": case "tan": case "asin": case "acos": case "atan":
+            case "sqrt": case "cbrt": case "ln": case "log": case "exp": case "abs":
+            case "floor": case "ceil": case "round": case "sinh": case "cosh": case "tanh":
+                return true;
+            default: return false;
+        }
+    }
+
+    private double userFunction(String name, double argument) {
+        UserFunction function = functions.get(name);
+        if (function == null) throw error("Unknown function: " + name);
+        if (recursionDepth >= 32) throw error("Function recursion limit exceeded");
+        boolean hadOldValue = variables.containsKey(function.parameter);
+        Double oldValue = variables.get(function.parameter);
+        String oldInput = input;
+        int oldPos = pos;
+        try {
+            recursionDepth++;
+            variables.put(function.parameter, argument);
+            input = function.expression.trim().replace('×', '*').replace('÷', '/');
+            pos = 0;
+            double value = assignment();
+            skipSpace();
+            if (pos != input.length()) throw error("Unexpected '" + input.charAt(pos) + "'");
+            return value;
+        } finally {
+            recursionDepth--;
+            input = oldInput;
+            pos = oldPos;
+            if (hadOldValue) variables.put(function.parameter, oldValue);
+            else variables.remove(function.parameter);
         }
     }
 

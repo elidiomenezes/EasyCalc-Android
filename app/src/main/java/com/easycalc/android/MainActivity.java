@@ -30,6 +30,7 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        engine.loadFunctions(getPreferences(MODE_PRIVATE).getString("functions", ""));
         setContentView(buildUi());
     }
 
@@ -108,6 +109,14 @@ public final class MainActivity extends Activity {
         if (expression.trim().isEmpty()) return;
         try {
             double value = engine.evaluate(expression);
+            if (engine.lastEvaluationWasDefinition()) {
+                String rendered = "Defined " + engine.getDefinitionText();
+                result.setText(rendered);
+                history.append("\n" + expression + "\n  " + rendered + "\n");
+                getPreferences(MODE_PRIVATE).edit()
+                        .putString("functions", engine.serializeFunctions()).apply();
+                return;
+            }
             String rendered = render(value);
             result.setText(rendered);
             history.append("\n" + expression + "\n  = " + rendered + "\n");
