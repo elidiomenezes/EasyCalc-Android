@@ -21,8 +21,9 @@ jobs:
       - name: Test expression engine
         run: |
           mkdir -p build/engine-test
-          javac -d build/engine-test app/src/main/java/com/easycalc/android/ExpressionEngine.java tools/EngineTestSuite.java
+          javac -d build/engine-test app/src/main/java/com/easycalc/android/ExpressionEngine.java app/src/main/java/com/easycalc/android/Value.java tools/EngineTestSuite.java tools/ValueTestSuite.java
           java -cp build/engine-test EngineTestSuite
+          java -cp build/engine-test ValueTestSuite
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
       - name: Name APK
