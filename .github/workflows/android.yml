@@ -1,0 +1,31 @@
+name: Android build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Test expression engine
+        run: |
+          mkdir -p build/engine-test
+          javac -d build/engine-test app/src/main/java/com/easycalc/android/ExpressionEngine.java tools/EngineSmokeTest.java
+          java -cp build/engine-test EngineSmokeTest
+      - name: Build debug APK
+        run: gradle --no-daemon assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EasyCalc-Android-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
