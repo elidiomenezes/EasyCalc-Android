@@ -20,7 +20,7 @@ public final class ExpressionEngine {
     public void setDegrees(boolean degrees) { this.degrees = degrees; }
 
     public double evaluate(String expression) {
-        input = expression.trim().toLowerCase(Locale.ROOT).replace('×', '*').replace('÷', '/');
+        input = expression.trim().replace('×', '*').replace('÷', '/');
         pos = 0;
         double value = assignment();
         skipSpace();
@@ -110,20 +110,34 @@ public final class ExpressionEngine {
     private double number() {
         int start = pos;
         while (pos < input.length() && (Character.isDigit(input.charAt(pos)) || input.charAt(pos) == '.')) pos++;
-        if (pos < input.length() && input.charAt(pos) == 'e') {
+        if (pos < input.length() && (input.charAt(pos) == 'e' || input.charAt(pos) == 'E')) {
             pos++;
             if (pos < input.length() && (input.charAt(pos) == '+' || input.charAt(pos) == '-')) pos++;
             while (pos < input.length() && Character.isDigit(input.charAt(pos))) pos++;
         }
-        try { return Double.parseDouble(input.substring(start, pos)); }
+        double value;
+        try { value = Double.parseDouble(input.substring(start, pos)); }
         catch (NumberFormatException ex) { throw error("Invalid number"); }
+        if (pos < input.length()) {
+            switch (input.charAt(pos)) {
+                case 'n': value *= 1e-9; pos++; break;
+                case 'u':
+                case 'µ': value *= 1e-6; pos++; break;
+                case 'm': value *= 1e-3; pos++; break;
+                case 'k': value *= 1e3; pos++; break;
+                case 'M': value *= 1e6; pos++; break;
+                case 'G': value *= 1e9; pos++; break;
+                default: break;
+            }
+        }
+        return value;
     }
 
     private String identifier() {
         skipSpace();
         int start = pos;
         while (pos < input.length() && (Character.isLetterOrDigit(input.charAt(pos)) || input.charAt(pos) == '_')) pos++;
-        return input.substring(start, pos);
+        return input.substring(start, pos).toLowerCase(Locale.ROOT);
     }
 
     private double function(String name, double x) {
