@@ -34,6 +34,16 @@ public final class EngineSmokeTest {
         ExpressionEngine restored = new ExpressionEngine();
         restored.loadFunctions(saved);
         assertNear(216, restored.evaluate("square(6)"));
+        restored.evaluate("undef(square)");
+        if (!restored.lastEvaluationWasDeletion()) throw new AssertionError("Deletion not reported");
+        if (restored.serializeFunctions().contains("square\t"))
+            throw new AssertionError("Deleted function was persisted");
+        try {
+            restored.evaluate("square(2)");
+            throw new AssertionError("Deleted function remained callable");
+        } catch (IllegalArgumentException expected) {
+            // Expected: the function no longer exists.
+        }
         e.setDegrees(true);
         assertNear(1, e.evaluate("sin(90)"));
         System.out.println("ExpressionEngine smoke tests passed");
