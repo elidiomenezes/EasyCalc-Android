@@ -1,0 +1,39 @@
+name: Call Blocker whitelist build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - build/call-blocker-whitelist
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Extract Call Blocker source
+        run: unzip -q call-blocker-whitelist-source.zip
+
+      - name: Test and build debug APK
+        working-directory: call-blocker-whitelist
+        run: |
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest assembleDebug --stacktrace
+
+      - name: Publish APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CallBlocker-whitelist-debug
+          path: call-blocker-whitelist/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
