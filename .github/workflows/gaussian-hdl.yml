@@ -1,0 +1,32 @@
+name: Gaussian 2-adic HDL experiment
+on:
+  push:
+    branches: [experiment/gaussian-2adic-hdl]
+  workflow_dispatch:
+jobs:
+  verify-and-synthesize:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        width: [8, 16, 32]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install EDA tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog yosys
+      - name: Simulate
+        run: |
+          iverilog -g2012 -s tb -Ptb.W=${{ matrix.width }} -o /tmp/gauss-sim hdl/gaussian/tb.v hdl/gaussian/conjugation.v
+          vvp /tmp/gauss-sim
+      - name: Synthesize each architecture
+        run: |
+          mkdir -p results
+          for top in conjugate_direct conjugate_newton conjugate_norm_inverse; do
+            yosys -Q -T -l "results/${top}-w${{ matrix.width }}.log" -p "read_verilog hdl/gaussian/conjugation.v; hierarchy -top ${top} -chparam W ${{ matrix.width }}; proc; opt; techmap; opt; abc -g simple; stat"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gaussian-w${{ matrix.width }}
+          path: results/
