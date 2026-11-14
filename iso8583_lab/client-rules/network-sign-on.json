@@ -1,0 +1,4 @@
+{
+  "start": { "message": "../messages/network-sign-on.json", "expect_response": true },
+  "responses": { "0810": "responses/stop.json" }
+}

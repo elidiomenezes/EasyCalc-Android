@@ -1,0 +1,13 @@
+name: iso8583-lab
+
+services:
+  lab:
+    image: iso8583-lab:local
+    build:
+      context: .
+    working_dir: /app
+    init: true
+    stdin_open: true
+    tty: true
+    ports:
+      - "${ISO8583_PORT_RANGE:-8500-8599}:8500-8599"

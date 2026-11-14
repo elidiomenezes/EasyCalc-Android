@@ -1,0 +1,59 @@
+{
+  "date_now_tolerance": 300,
+  "captures": {
+    "$pan4": { "field": "2", "regex": "([0-9]{4})$" },
+    "$stan": { "field": "11", "regex": "^([0-9]{6})$" },
+    "$luhn": { "field": "2", "regex": "^[0-9]{13,19}$" },
+    "$date7": { "field": "7", "format": "%m%d%H%M%S" },
+    "$date12": { "field": "12", "format": "%H%M%S" },
+    "$date13": { "field": "13", "format": "%m%d" }
+  },
+  "rules": [
+    {
+      "name": "reject invalid or stale DE7",
+      "match": { "$date7_now": "^0$" },
+      "response": "responses/invalid-date.json"
+    },
+    {
+      "name": "reject invalid or stale DE12",
+      "match": { "$date12_now": "^0$" },
+      "response": "responses/invalid-date.json"
+    },
+    {
+      "name": "reject invalid or stale DE13",
+      "match": { "$date13_now": "^0$" },
+      "response": "responses/invalid-date.json"
+    },
+    {
+      "name": "decline invalid PAN checksum",
+      "match": {
+        "$luhn": "^0$",
+        "$date7_now": "^1$",
+        "$date12_now": "^1$",
+        "$date13_now": "^1$"
+      },
+      "response": "responses/invalid-pan.json"
+    },
+    {
+      "name": "decline PAN ending in 0000",
+      "match": {
+        "2": "0000$",
+        "$date7_now": "^1$",
+        "$date12_now": "^1$",
+        "$date13_now": "^1$"
+      },
+      "response": "responses/authorization-declined.json"
+    },
+    {
+      "name": "approve authorization",
+      "match": {
+        "$luhn": "^1$",
+        "$date7_now": "^1$",
+        "$date12_now": "^1$",
+        "$date13_now": "^1$"
+      },
+      "response": "responses/authorization-approved.json"
+    }
+  ],
+  "default": "responses/system-error.json"
+}

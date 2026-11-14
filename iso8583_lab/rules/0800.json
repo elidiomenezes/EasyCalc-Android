@@ -1,0 +1,20 @@
+{
+  "date_now_tolerance": 300,
+  "captures": {
+    "$date7": {
+      "field": "7",
+      "format": "%m%d%H%M%S"
+    }
+  },
+  "rules": [
+    {
+      "name": "acknowledge network sign-on",
+      "match": {
+        "$date7_now": "^1$",
+        "70": "^001$"
+      },
+      "response": "responses/network-sign-on-approved.json"
+    }
+  ],
+  "default": "responses/network-invalid-transaction.json"
+}

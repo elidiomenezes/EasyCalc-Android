@@ -1,0 +1,10 @@
+{
+  "_validation_profile": "nibss-presence-v1.16.json",
+  "_format_error_response": "responses/nibss-format-error.json",
+  "0100": "0100.json",
+  "0120": "0120-nibss.json",
+  "0200": "0200.json",
+  "0220": "0220.json",
+  "0420": "0420.json",
+  "0800": "0800.json"
+}

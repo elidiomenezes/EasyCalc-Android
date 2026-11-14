@@ -1,0 +1,4 @@
+{
+  "start": { "message": "../messages/authorization-approved.json", "expect_response": true },
+  "responses": { "0110": "responses/stop.json" }
+}

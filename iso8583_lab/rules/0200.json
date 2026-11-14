@@ -1,0 +1,20 @@
+{
+  "date_now_tolerance": 300,
+  "captures": {
+    "$date7": { "field": "7", "format": "%m%d%H%M%S" },
+    "$date12": { "field": "12", "format": "%H%M%S" },
+    "$date13": { "field": "13", "format": "%m%d" }
+  },
+  "rules": [
+    {
+      "name": "approve financial transaction with current dates",
+      "match": {
+        "$date7_now": "^1$",
+        "$date12_now": "^1$",
+        "$date13_now": "^1$"
+      },
+      "response": "responses/financial-approved.json"
+    }
+  ],
+  "default": "responses/invalid-date.json"
+}

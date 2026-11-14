@@ -1,0 +1,17 @@
+{
+  "captures": {
+    "$stan": { "field": "11", "regex": "^([0-9]{6})$" },
+    "$rrn": { "field": "37", "regex": "^(.{12})$" }
+  },
+  "rules": [
+    {
+      "name": "approved - send final confirmation",
+      "match": { "39": "^00$" },
+      "next": {
+        "message": "../../messages/authorization-confirmation.json",
+        "expect_response": false
+      }
+    }
+  ],
+  "default": null
+}

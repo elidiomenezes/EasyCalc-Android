@@ -1,0 +1,10 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.py[cod]
+*.log
+logs
+deliverables
+*.tar
+*:Zone.Identifier

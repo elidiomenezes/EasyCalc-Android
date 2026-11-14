@@ -1,0 +1,4 @@
+{
+  "start": { "message": "../messages/administrative-request.json", "expect_response": true },
+  "responses": { "0610": "responses/stop.json" }
+}

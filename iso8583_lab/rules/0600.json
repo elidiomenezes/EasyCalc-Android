@@ -1,0 +1,17 @@
+{
+  "date_now_tolerance": 300,
+  "captures": {
+    "$date7": { "field": "7", "format": "%m%d%H%M%S" }
+  },
+  "rules": [
+    {
+      "name": "acknowledge administrative request",
+      "match": {
+        "$date7_now": "^1$",
+        "60": "^PARAMETER-STATUS$"
+      },
+      "response": "responses/administrative-approved.json"
+    }
+  ],
+  "default": "responses/administrative-rejected.json"
+}

@@ -1,0 +1,4 @@
+{
+  "start": { "message": "../messages/financial.json", "expect_response": true },
+  "responses": { "0210": "responses/stop.json" }
+}

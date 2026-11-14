@@ -1,0 +1,15 @@
+{
+  "start": {
+    "message": "../messages/nibss-authorization.json",
+    "expect_response": true
+  },
+  "responses": {
+    "0110": "responses/stop.json"
+  },
+  "heartbeat": {
+    "enabled": true,
+    "interval_seconds": 60,
+    "message": "../messages/network-heartbeat.json",
+    "expect_response": true
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "start": { "message": "../messages/reversal-request.json", "expect_response": true },
+  "responses": { "0410": "responses/stop.json" }
+}
