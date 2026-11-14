@@ -4,6 +4,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
+# Match the ISO8583 course toolchain: C/C++ build tools, debugging utilities,
+# Boost.Asio/Boost.System, OpenSSL and SQLite development headers and libraries.
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    build-essential cmake make ninja-build gdb git ca-certificates \
+    libboost-dev libboost-system-dev libsqlite3-dev sqlite3 libssl-dev openssl \
+    pkg-config ncat netcat-openbsd curl jq xxd \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY requirements.txt ./
