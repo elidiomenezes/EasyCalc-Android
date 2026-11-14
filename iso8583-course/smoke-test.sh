@@ -6,7 +6,9 @@ command -v docker >/dev/null || { echo "ERROR: Docker is not installed" >&2; exi
 docker info >/dev/null 2>&1 || { echo "ERROR: Docker daemon is unavailable" >&2; exit 1; }
 
 echo "Pulling $IMAGE"
-docker pull "$IMAGE"
+if [[ "${2:-}" != "--local" ]]; then
+  docker pull "$IMAGE"
+fi
 
 echo "Running self-contained ISO 8583 smoke test"
 docker run --rm --entrypoint /bin/bash "$IMAGE" -s <<'CONTAINER_TEST'
