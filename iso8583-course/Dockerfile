@@ -7,3 +7,5 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 RUN python3 -m venv /opt/iso8583-venv && /opt/iso8583-venv/bin/pip install --no-cache-dir pyiso8583
 ENV PATH="/opt/iso8583-venv/bin:${PATH}"
 WORKDIR /workspaces
+COPY scripts/container-smoke-test.sh /home/vscode/smoke-test.sh
+RUN chmod 755 /home/vscode/smoke-test.sh && chown vscode:vscode /home/vscode/smoke-test.sh
