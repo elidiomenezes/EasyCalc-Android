@@ -1,0 +1,20 @@
+{
+  "name": "ISO 8583 Course",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspaces/iso8583-course",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/iso8583-course,type=bind",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-python.python"
+      ]
+    }
+  },
+  "postCreateCommand": "bash scripts/verify_environment.sh",
+  "remoteUser": "vscode"
+}
