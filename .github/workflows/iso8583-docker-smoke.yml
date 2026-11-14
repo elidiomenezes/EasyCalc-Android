@@ -1,0 +1,35 @@
+name: ISO8583 Docker smoke image
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/iso8583-simulator-docker-build
+    paths:
+      - 'iso8583_lab/**'
+      - '.github/workflows/iso8583-docker-smoke.yml'
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify simulator source
+        run: |
+          test -f iso8583_lab/Dockerfile
+          test -f iso8583_lab/docker_root_smoke.sh
+          test -f iso8583_lab/server.py
+      - name: Build Docker image
+        run: docker build -t iso8583-lab:local iso8583_lab
+      - name: Execute smoke test inside image
+        run: docker run --rm --entrypoint /bin/sh iso8583-lab:local -c '/root/smoke-test.sh'
+      - name: Export tested image
+        run: |
+          docker save iso8583-lab:local -o iso8583-lab-image.tar
+          sha256sum iso8583-lab-image.tar > iso8583-lab-image.tar.sha256
+      - name: Upload tested image
+        uses: actions/upload-artifact@v4
+        with:
+          name: iso8583-lab-tested-image
+          path: |
+            iso8583-lab-image.tar
+            iso8583-lab-image.tar.sha256
+          retention-days: 7
