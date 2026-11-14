@@ -1,3 +1,9 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential cmake ninja-build gdb python3 python3-venv python3-pip git ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    build-essential cmake make ninja-build gdb git ca-certificates \
+    libboost-dev libboost-system-dev libsqlite3-dev sqlite3 libssl-dev openssl \
+    python3 python3-venv python3-pip pkg-config ncat netcat-openbsd curl jq xxd \
+    && rm -rf /var/lib/apt/lists/*
+RUN python3 -m venv /opt/iso8583-venv && /opt/iso8583-venv/bin/pip install --no-cache-dir pyiso8583
+ENV PATH="/opt/iso8583-venv/bin:${PATH}"
 WORKDIR /workspaces
