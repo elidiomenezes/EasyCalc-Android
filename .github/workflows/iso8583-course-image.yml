@@ -10,7 +10,20 @@ permissions:
   contents: read
   packages: write
 jobs:
-  build:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build local test image
+        run: docker build -t iso8583-course:test ./iso8583-course
+      - name: Verify installed tools and linked libraries
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/iso8583-course:/workspaces/iso8583-course" \
+            -w /workspaces/iso8583-course \
+            iso8583-course:test bash scripts/verify_environment.sh
+  publish:
+    needs: smoke-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
