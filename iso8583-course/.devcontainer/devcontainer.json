@@ -1,9 +1,6 @@
 {
   "name": "ISO 8583 Course",
-  "build": {
-    "dockerfile": "../Dockerfile",
-    "context": ".."
-  },
+  "image": "ghcr.io/elidiomenezes/iso8583-course:latest",
   "workspaceFolder": "/workspaces/iso8583-course",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/iso8583-course,type=bind",
   "customizations": {
