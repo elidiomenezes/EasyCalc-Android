@@ -18,7 +18,7 @@ jobs:
         run: docker build -t iso8583-course:test ./iso8583-course
       - name: Verify installed tools and linked libraries
         run: |
-          bash iso8583-course/smoke-test.sh iso8583-course:test --local
+          docker run --rm --user vscode -w /home/vscode iso8583-course:test ./smoke-test.sh
   publish:
     needs: smoke-test
     runs-on: ubuntu-latest
