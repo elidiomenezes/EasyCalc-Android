@@ -9,8 +9,15 @@ use on Day 3 if they did not finish Day 2.
 day02_reference/
   CMakeLists.txt        C++17 build definition
   README.md             Build, execution and architecture
-  src/gateway.cpp       Commented Boost.Asio implementation
+  include/gateway.hpp   Listener interface
+  include/session.hpp   Session interface and two buffers
+  include/logger.hpp    Thread-safe logging interface
+  src/main.cpp          CLI, argument validation, startup
+  src/gateway.cpp       Listener implementation and worker creation
+  src/session.cpp       Bidirectional forwarding with Boost.Asio
+  src/logger.cpp        Thread-safe logging implementation
   tests/public/         Original Day 2 public tests
+  tests/instructor/     Additional transport and simulator checks
 ```
 
 ## Build
@@ -36,11 +43,11 @@ authorizer is listening. Both are mandatory `IPv4:port` addresses.
 
 ## Architecture, step by step
 
-1. `main()` parses both endpoints, creates a `tcp::acceptor`, and waits for a
-   client using `accept()`.
-2. A new `std::thread` runs `serve_client()` for that client. Other clients
+1. `main.cpp` parses both endpoints and creates the `Gateway` object.
+2. `Gateway::run()` waits for clients using `accept()`. A new `std::thread`
+   runs `serve_client()` for each client. Other clients
    continue to be accepted, even while this one is idle.
-3. `serve_client()` creates an independent `asio::io_context`, and a `Session`
+3. `serve_client()` (in `session.cpp`) creates an independent `asio::io_context`, and a `Session`
    with **two sockets**: one client, one outgoing authorizer connection.
 4. `Session::read_client()` and `read_authorizer()` post asynchronous reads
    in opposite directions. When bytes arrive, `asio::async_write()` forwards
@@ -61,6 +68,11 @@ authorizer is listening. Both are mandatory `IPv4:port` addresses.
   unchanged, including `\0` and partial ISO frames. Parsing starts on Day 3.
 - **Logging:** a mutex only protects `std::cerr`; sockets are owned by their
   own worker, with no shared authorizer connection.
+- **Headers versus sources:** `.hpp` files declare each component's public
+  interface; `.cpp` files implement it. CMake compiles all four `.cpp` files
+  and links them into one executable. `#pragma once` avoids duplicate includes.
+- **Day 3:** framing/parsing code can be added as another component without
+  crowding `main.cpp` or the gateway listener.
 
 ## Public tests
 
