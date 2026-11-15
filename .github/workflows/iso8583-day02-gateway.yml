@@ -1,0 +1,41 @@
+name: ISO8583 Day 2 - Reference Gateway
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'iso8583/week10/day02/reference/**'
+      - '.github/workflows/iso8583-day02-gateway.yml'
+
+jobs:
+  test-gateway:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: iso8583/week10/day02/reference
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install compiler, CMake and Boost
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libboost-dev libboost-system-dev python3
+
+      - name: Configure C++17 build
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Compile reference gateway
+        run: cmake --build build --parallel 2
+
+      - name: Original Day 2 public tests P1-P5
+        run: python3 tests/public/test_gateway.py --gateway-cmd './build/gateway {listen} {authorizer}'
+
+      - name: Upload executable for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: day02-reference-build
+          path: iso8583/week10/day02/reference/build/gateway
+          if-no-files-found: ignore
