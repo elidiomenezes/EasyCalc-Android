@@ -5,7 +5,7 @@
 #include <string>
 #include <unistd.h> // close() only if adopting a descriptor fails
 
-namespace course {
+namespace payment_gateway {
 
 Session::Session(asio::io_context& io, tcp::endpoint destination)
     : client_(io), authorizer_(io), destination_(destination) {}
@@ -118,4 +118,4 @@ void serve_client(tcp::socket::native_handle_type fd, tcp::endpoint destination)
     }
 }
 
-} // namespace course
+} // namespace payment_gateway
