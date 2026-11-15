@@ -2,7 +2,7 @@
 
 #include <boost/asio.hpp>
 
-namespace course {
+namespace payment_gateway {
 
 // Accepts incoming connections and starts one independent worker per client.
 // It does not know anything about ISO 8583 fields or transaction boundaries.
@@ -19,4 +19,4 @@ private:
     tcp::endpoint authorizer_address_;
 };
 
-} // namespace course
+} // namespace payment_gateway
