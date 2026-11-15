@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <memory>
 
-namespace course {
+namespace payment_gateway {
 
 namespace asio = boost::asio;
 using tcp = asio::ip::tcp;
@@ -43,4 +43,4 @@ private:
 // fd is a native descriptor transferred from Gateway::run().
 void serve_client(tcp::socket::native_handle_type fd, tcp::endpoint destination);
 
-} // namespace course
+} // namespace payment_gateway
