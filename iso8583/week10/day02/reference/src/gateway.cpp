@@ -6,7 +6,7 @@
 #include <thread>
 #include <unistd.h> // close() if creating a worker thread fails
 
-namespace course {
+namespace payment_gateway {
 
 Gateway::Gateway(tcp::endpoint listen_address, tcp::endpoint authorizer_address)
     : acceptor_(io_), authorizer_address_(authorizer_address) {
@@ -46,4 +46,4 @@ void Gateway::run() {
     }
 }
 
-} // namespace course
+} // namespace payment_gateway
