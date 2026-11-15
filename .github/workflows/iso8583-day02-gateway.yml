@@ -10,7 +10,7 @@ on:
 jobs:
   test-gateway:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: iso8583/week10/day02/reference
@@ -31,6 +31,26 @@ jobs:
 
       - name: Original Day 2 public tests P1-P5
         run: python3 tests/public/test_gateway.py --gateway-cmd './build/gateway {listen} {authorizer}'
+
+      - name: Instructor transport tests H1-H7
+        run: python3 tests/instructor/test_hidden_gateway.py --gateway-cmd './build/gateway {listen} {authorizer}'
+
+      - name: Retrieve course simulator container
+        run: |
+          docker pull ghcr.io/elidiomenezes/iso8583-course:simulator
+          container_id="$(docker create ghcr.io/elidiomenezes/iso8583-course:simulator)"
+          mkdir -p "$RUNNER_TEMP/iso8583-simulator"
+          docker cp "$container_id:/app/." "$RUNNER_TEMP/iso8583-simulator/"
+          docker rm "$container_id"
+          test -f "$RUNNER_TEMP/iso8583-simulator/server.py"
+          test -f "$RUNNER_TEMP/iso8583-simulator/client.py"
+
+      - name: Run real simulator integration
+        run: |
+          python3 -m pip install --break-system-packages pyiso8583
+          python3 tests/instructor/validate_real_simulator.py \
+            --simulator-dir "$RUNNER_TEMP/iso8583-simulator" \
+            --gateway-cmd './build/gateway {listen} {authorizer}'
 
       - name: Upload executable for inspection
         if: always()
