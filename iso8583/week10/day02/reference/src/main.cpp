@@ -8,7 +8,7 @@
 namespace {
 
 // Convert an IPv4:port command-line argument into an Asio endpoint.
-course::Gateway::tcp::endpoint parse_endpoint(const std::string& text) {
+payment_gateway::Gateway::tcp::endpoint parse_endpoint(const std::string& text) {
     const auto colon = text.find(':');
     if (colon == std::string::npos || text.find(':', colon + 1) != std::string::npos)
         throw std::runtime_error("Expected IPv4:port: " + text);
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     }
 
     try {
-        course::Gateway gateway(parse_endpoint(argv[1]), parse_endpoint(argv[2]));
+        payment_gateway::Gateway gateway(parse_endpoint(argv[1]), parse_endpoint(argv[2]));
         gateway.run();
     } catch (const std::exception& error) {
         std::cerr << "gateway: " << error.what() << '\n';
