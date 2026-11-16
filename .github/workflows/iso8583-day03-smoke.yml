@@ -1,0 +1,28 @@
+name: ISO8583 Week 10 Day 3 Parser Smoke
+on:
+  push:
+    branches: [ci/week10-day03-parser-smoke]
+    paths:
+      - 'iso8583/week10/day03/ci-example/**'
+      - '.github/workflows/iso8583-day03-smoke.yml'
+  pull_request:
+    paths:
+      - 'iso8583/week10/day03/ci-example/**'
+      - '.github/workflows/iso8583-day03-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  parser-public-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile sample with C++17 and warnings
+        shell: bash
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Wpedantic -Wconversion -Werror \
+            -I iso8583/week10/day03/ci-example/include \
+            iso8583/week10/day03/ci-example/src/iso8583_parser.cpp \
+            iso8583/week10/day03/ci-example/tests/parser_tests.cpp \
+            -o /tmp/iso8583-day03-public-tests
+      - name: Run five public parser tests
+        run: /tmp/iso8583-day03-public-tests
