@@ -86,15 +86,15 @@ static void extended_nibss() {
     const struct { unsigned de; F format; std::size_t maximum; } extra[] = {
         {23,F::fixed,3}, {28,F::fixed,9}, {38,F::fixed,6},
         {43,F::fixed,40}, {48,F::lllvar,999}, {52,F::fixed,16},
-        {53,F::fixed,96}, {59,F::lllvar,255}, {62,F::lllvar,999},
-        {63,F::llllvar,9999}, {90,F::fixed,42}, {95,F::fixed,42},
+        {53,F::fixed,16}, {59,F::lllvar,255}, {60,F::lllvar,999}, {62,F::lllvar,999},
+        {63,F::llllvar,9999}, {70,F::fixed,3}, {90,F::fixed,42}, {95,F::fixed,42},
         {124,F::llllvar,9999}, {128,F::fixed,64}
     };
     std::size_t configured = 0;
     for (const auto& e : table) {
         if (e.format != F::unused) ++configured;
     }
-    require(configured == 34, "expected 34 configured fields (20 + 14)");
+    require(configured == 36, "expected 36 configured fields (20 + 16)");
     for (const auto& e : extra) {
         require(table[e.de].format == e.format &&
                 table[e.de].maximum == e.maximum,
@@ -104,9 +104,9 @@ static void extended_nibss() {
     std::vector<std::pair<unsigned,std::string>> values = {
         {23,"001"}, {28,"C00000001"}, {38,"123456"},
         {43,std::string(40,'A')}, {48,"004DATA"},
-        {52,"0123456789ABCDEF"}, {53,std::string(96,'F')},
-        {59,"003ECO"}, {62,"005HELLO"}, {63,"0004ABCD"},
-        {90,std::string(42,'0')}, {95,std::string(42,'1')},
+        {52,"0123456789ABCDEF"}, {53,std::string(16,'F')},
+        {59,"003ECO"}, {60,"003ADM"}, {62,"005HELLO"}, {63,"0004ABCD"},
+        {70,"001"}, {90,std::string(42,'0')}, {95,std::string(42,'1')},
         {124,"0003NFC"}, {128,std::string(64,'A')}
     };
     bits[1] = true;
