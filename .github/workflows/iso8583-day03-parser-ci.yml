@@ -84,6 +84,11 @@ jobs:
           python3 iso8583/week10/day02/reference/tests/instructor/validate_real_simulator.py \
             --simulator-dir "$RUNNER_TEMP/iso8583-simulator" \
             --gateway-cmd './build/iso8583-day03/gateway {listen} {authorizer}'
+      - name: Real client server extended parser validation
+        run: |
+          python3 iso8583/week10/day03/reference/instructor/tests/validate_extended_with_simulator.py \
+            --simulator-dir "$RUNNER_TEMP/iso8583-simulator" \
+            --gateway-cmd './build/iso8583-day03/gateway {listen} {authorizer}'
       - name: Upload gateway binary
         if: always()
         uses: actions/upload-artifact@v4
