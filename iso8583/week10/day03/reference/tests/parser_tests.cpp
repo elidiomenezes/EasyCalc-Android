@@ -184,7 +184,7 @@ static void extended_nibss() {
                 "complete fixture DE" + std::to_string(e.de));
     }
     std::size_t offset = 0;
-    const std::string binary("0003A\\0B", 7);
+    const std::string binary("0003A\0B", 7);
     require(Iso8583Parser::parse_llllvar(binary, offset, 9999).size() == 3U &&
             offset == 7U, "LLLLVAR binary safety");
 
