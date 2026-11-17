@@ -17,6 +17,45 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake libboost-dev libboost-system-dev python3
+      - name: Install exact adapted parser files from distributed ZIP
+        run: |
+          cat <<'ADAPTED_PARSER' | base64 -d | tar -xz -C iso8583/week10/day03/reference
+          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
+          ADAPTED_PARSER
+          sha256sum iso8583/week10/day03/reference/src/iso8583_parser.cpp iso8583/week10/day03/reference/include/iso8583_parser.hpp
       - name: Configure
         run: cmake -S iso8583/week10/day03/reference -B build/iso8583-day03 -DCMAKE_BUILD_TYPE=Debug
       - name: Build gateway and parser
