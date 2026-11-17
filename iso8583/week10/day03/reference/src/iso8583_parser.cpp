@@ -83,8 +83,10 @@ Iso8583Parser::FieldTable Iso8583Parser::nibss_fields() {
     table[43] = {FieldFormat::fixed, 40};
     table[48] = {FieldFormat::lllvar, 999}; // printed spec says LLVAR but max is 999
     table[52] = {FieldFormat::fixed, 16}; // ASCII hex representation of PIN block
-    table[53] = {FieldFormat::fixed, 96}; // ASCII hex
+    table[53] = {FieldFormat::fixed, 16}; // simulator NIBSS profile uses 16 ASCII characters
     table[59] = {FieldFormat::lllvar, 255};
+    table[60] = {FieldFormat::lllvar, 999}; // simulator administrative 0600
+    table[70] = {FieldFormat::fixed, 3}; // simulator network management 0800
     table[62] = {FieldFormat::lllvar, 999};
     table[63] = {FieldFormat::llllvar, 9999};
     table[90] = {FieldFormat::fixed, 42};
