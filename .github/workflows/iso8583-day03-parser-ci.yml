@@ -35,6 +35,21 @@ jobs:
         run: |
           python3 iso8583/week10/day02/reference/tests/instructor/test_hidden_gateway.py \
             --gateway-cmd './build/iso8583-day03/gateway {listen} {authorizer}'
+      - name: Retrieve ISO8583 course simulator
+        run: |
+          docker pull ghcr.io/elidiomenezes/iso8583-course:simulator
+          container_id="$(docker create ghcr.io/elidiomenezes/iso8583-course:simulator)"
+          mkdir -p "$RUNNER_TEMP/iso8583-simulator"
+          docker cp "$container_id:/app/." "$RUNNER_TEMP/iso8583-simulator/"
+          docker rm "$container_id"
+          test -f "$RUNNER_TEMP/iso8583-simulator/server.py"
+          test -f "$RUNNER_TEMP/iso8583-simulator/client.py"
+      - name: Real simulator integration
+        run: |
+          python3 -m pip install --break-system-packages pyiso8583
+          python3 iso8583/week10/day02/reference/tests/instructor/validate_real_simulator.py \
+            --simulator-dir "$RUNNER_TEMP/iso8583-simulator" \
+            --gateway-cmd './build/iso8583-day03/gateway {listen} {authorizer}'
       - name: Upload gateway binary
         if: always()
         uses: actions/upload-artifact@v4
