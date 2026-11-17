@@ -55,42 +55,63 @@ Iso8583Parser::Iso8583Parser(FieldTable fields)
 
 Iso8583Parser::FieldTable Iso8583Parser::nibss_fields() {
     FieldTable table{};
+    // NIBSS POS Interface v1.16 section 3 message-layout union.
+    // DE70 is deliberately absent; not listed by the specification.
     table[2] = {FieldFormat::llvar, 19};
     table[3] = {FieldFormat::fixed, 6};
     table[4] = {FieldFormat::fixed, 12};
+    table[5] = {FieldFormat::fixed, 12};
     table[7] = {FieldFormat::fixed, 10};
+    table[9] = {FieldFormat::fixed, 8};
     table[11] = {FieldFormat::fixed, 6};
     table[12] = {FieldFormat::fixed, 6};
     table[13] = {FieldFormat::fixed, 4};
     table[14] = {FieldFormat::fixed, 4};
+    table[15] = {FieldFormat::fixed, 4};
+    table[16] = {FieldFormat::fixed, 4};
     table[18] = {FieldFormat::fixed, 4};
     table[22] = {FieldFormat::fixed, 3};
+    table[23] = {FieldFormat::fixed, 3};
     table[25] = {FieldFormat::fixed, 2};
+    table[26] = {FieldFormat::fixed, 2};
+    table[28] = {FieldFormat::fixed, 9};
+    table[29] = {FieldFormat::fixed, 9};
+    table[30] = {FieldFormat::fixed, 9};
+    table[31] = {FieldFormat::fixed, 9};
     table[32] = {FieldFormat::llvar, 11};
+    table[33] = {FieldFormat::llvar, 11};
     table[35] = {FieldFormat::llvar, 37};
     table[37] = {FieldFormat::fixed, 12};
+    table[38] = {FieldFormat::fixed, 6};
     table[39] = {FieldFormat::fixed, 2};
+    table[40] = {FieldFormat::fixed, 3};
     table[41] = {FieldFormat::fixed, 8};
     table[42] = {FieldFormat::fixed, 15};
-    table[49] = {FieldFormat::fixed, 3};
-    table[55] = {FieldFormat::lllvar, 510};
-    table[123] = {FieldFormat::lllvar, 15};
-    // Additional NIBSS v1.16 fields in the instructor reference profile.
-    // Variable fields use an ASCII decimal length in this classroom profile.
-    table[23] = {FieldFormat::fixed, 3};
-    table[28] = {FieldFormat::fixed, 9}; // sign plus eight digits
-    table[38] = {FieldFormat::fixed, 6};
     table[43] = {FieldFormat::fixed, 40};
-    table[48] = {FieldFormat::lllvar, 999}; // printed spec says LLVAR but max is 999
-    table[52] = {FieldFormat::fixed, 16}; // ASCII hex representation of PIN block
-    table[53] = {FieldFormat::fixed, 16}; // simulator NIBSS profile uses 16 ASCII characters
+    table[44] = {FieldFormat::llvar, 25};
+    table[45] = {FieldFormat::llvar, 76};
+    table[48] = {FieldFormat::lllvar, 999};
+    table[49] = {FieldFormat::fixed, 3};
+    table[50] = {FieldFormat::fixed, 3};
+    table[52] = {FieldFormat::fixed, 16};
+    table[53] = {FieldFormat::fixed, 96};
+    table[54] = {FieldFormat::lllvar, 120};
+    table[55] = {FieldFormat::lllvar, 510};
+    table[56] = {FieldFormat::lllvar, 4};
+    table[58] = {FieldFormat::lllvar, 11};
     table[59] = {FieldFormat::lllvar, 255};
-    table[60] = {FieldFormat::lllvar, 999}; // simulator administrative 0600
-    table[70] = {FieldFormat::fixed, 3}; // simulator network management 0800
+    table[60] = {FieldFormat::lllvar, 999};
     table[62] = {FieldFormat::lllvar, 999};
     table[63] = {FieldFormat::llllvar, 9999};
+    table[64] = {FieldFormat::fixed, 64};
+    table[67] = {FieldFormat::fixed, 2};
     table[90] = {FieldFormat::fixed, 42};
     table[95] = {FieldFormat::fixed, 42};
+    table[98] = {FieldFormat::fixed, 25};
+    table[100] = {FieldFormat::llvar, 11};
+    table[102] = {FieldFormat::llvar, 28};
+    table[103] = {FieldFormat::llvar, 28};
+    table[123] = {FieldFormat::lllvar, 15};
     table[124] = {FieldFormat::llllvar, 9999};
     table[128] = {FieldFormat::fixed, 64};
     return table;
