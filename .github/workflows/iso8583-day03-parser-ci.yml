@@ -63,6 +63,21 @@ jobs:
           print('CLIENT SOURCE HEAD',pathlib.Path('client.py').read_text()[:17000],flush=True)
           PY
           exit 0
+      - name: Inspect real client rule templates
+        run: |
+          cd "$RUNNER_TEMP/iso8583-simulator"
+          python3 - <<'PY'
+          import pathlib
+          for name in ['client-rules/authorization-approved.json',
+                       'client-rules/network-sign-on.json',
+                       'client-rules/financial-advice.json',
+                       'client-rules/reversal.json',
+                       'client-rules/network-no-response.json',
+                       'messages/financial-advice.json',
+                       'messages/reversal.json',
+                       'messages/administrative-request.json']:
+              print('TEMPLATE',name, pathlib.Path(name).read_text()[:6500], flush=True)
+          PY
       - name: Real simulator integration
         run: |
           python3 -m pip install --break-system-packages pyiso8583
