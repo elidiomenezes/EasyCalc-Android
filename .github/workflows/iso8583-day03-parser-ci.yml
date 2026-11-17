@@ -44,6 +44,25 @@ jobs:
           docker rm "$container_id"
           test -f "$RUNNER_TEMP/iso8583-simulator/server.py"
           test -f "$RUNNER_TEMP/iso8583-simulator/client.py"
+      - name: Inspect simulator CLI and transaction fixtures
+        run: |
+          set +e
+          cd "$RUNNER_TEMP/iso8583-simulator"
+          python3 client.py --help
+          python3 server.py --help
+          python3 - <<'PY'
+          import pathlib,json
+          root=pathlib.Path('.')
+          for folder in ['messages','client-rules','rules','specs']:
+              print('DIRECTORY',folder, [p.name for p in (root/folder).glob('*')][:100],flush=True)
+          for name in ['messages/authorization-approved.json','messages/network-sign-on.json','specs/nibss-v1.16.json']:
+              try:
+                  j=json.loads(pathlib.Path(name).read_text())
+                  print('FILE',name,repr(j)[:11000],flush=True)
+              except Exception as exc: print('ERROR',name,exc,flush=True)
+          print('CLIENT SOURCE HEAD',pathlib.Path('client.py').read_text()[:17000],flush=True)
+          PY
+          exit 0
       - name: Real simulator integration
         run: |
           python3 -m pip install --break-system-packages pyiso8583
