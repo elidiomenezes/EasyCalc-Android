@@ -1,0 +1,31 @@
+name: Day 4 SQLite assignment validation
+on:
+  push:
+    branches: [ci/day04-validation]
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ libsqlite3-dev sqlite3 python3 unzip
+      - name: Unpack exact delivered course pack
+        run: unzip -q ci/day04/ISO8583_Day04_Complete_Course_Pack.zip -d /tmp/day04 && test -f /tmp/day04/ISO8583_Day04_Course_Pack/instructor/grading/grade_day04.py
+      - name: Instructor reference - full public, hidden, regression, RAII grading
+        run: python3 /tmp/day04/ISO8583_Day04_Course_Pack/instructor/grading/grade_day04.py --student-root /tmp/day04/ISO8583_Day04_Course_Pack/instructor/reference
+      - name: Student starter - compile and Day 3 regression
+        run: |
+          cmake -S /tmp/day04/ISO8583_Day04_Course_Pack/student -B /tmp/day04/student-build -DBUILD_TESTING=ON
+          cmake --build /tmp/day04/student-build --parallel 2
+          ctest --test-dir /tmp/day04/student-build --output-on-failure
+      - name: Negative control - incomplete student starter must fail persistence grading
+        run: |
+          set +e
+          python3 /tmp/day04/ISO8583_Day04_Course_Pack/instructor/grading/grade_day04.py --student-root /tmp/day04/ISO8583_Day04_Course_Pack/student > /tmp/day04/starter-grade.log 2>&1
+          result=$?
+          set -e
+          cat /tmp/day04/starter-grade.log
+          test "$result" -ne 0
+          grep -q 'PRACTICAL:' /tmp/day04/starter-grade.log
