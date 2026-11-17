@@ -75,6 +75,22 @@ Iso8583Parser::FieldTable Iso8583Parser::nibss_fields() {
     table[49] = {FieldFormat::fixed, 3};
     table[55] = {FieldFormat::lllvar, 510};
     table[123] = {FieldFormat::lllvar, 15};
+    // Additional NIBSS v1.16 fields in the instructor reference profile.
+    // Variable fields use an ASCII decimal length in this classroom profile.
+    table[23] = {FieldFormat::fixed, 3};
+    table[28] = {FieldFormat::fixed, 9}; // sign plus eight digits
+    table[38] = {FieldFormat::fixed, 6};
+    table[43] = {FieldFormat::fixed, 40};
+    table[48] = {FieldFormat::lllvar, 999}; // printed spec says LLVAR but max is 999
+    table[52] = {FieldFormat::fixed, 16}; // ASCII hex representation of PIN block
+    table[53] = {FieldFormat::fixed, 96}; // ASCII hex
+    table[59] = {FieldFormat::lllvar, 255};
+    table[62] = {FieldFormat::lllvar, 999};
+    table[63] = {FieldFormat::llllvar, 9999};
+    table[90] = {FieldFormat::fixed, 42};
+    table[95] = {FieldFormat::fixed, 42};
+    table[124] = {FieldFormat::llllvar, 9999};
+    table[128] = {FieldFormat::fixed, 64};
     return table;
 }
 
@@ -99,6 +115,12 @@ std::string Iso8583Parser::parse_lllvar(const std::string& wire,
                                         std::size_t& offset,
                                         std::size_t maximum) {
     return parse_variable(wire, offset, 3, maximum);
+}
+
+std::string Iso8583Parser::parse_llllvar(const std::string& wire,
+                                         std::size_t& offset,
+                                         std::size_t maximum) {
+    return parse_variable(wire, offset, 4, maximum);
 }
 
 Iso8583Parser::PresenceMap Iso8583Parser::parse_bitmaps(
@@ -134,6 +156,9 @@ ParsedMessage Iso8583Parser::parse(const std::string& payload) const {
             break;
         case FieldFormat::lllvar:
             message.fields[de] = parse_lllvar(payload, offset, spec.maximum);
+            break;
+        case FieldFormat::llllvar:
+            message.fields[de] = parse_llllvar(payload, offset, spec.maximum);
             break;
         case FieldFormat::unused:
             throw ParseError("bitmap references unsupported Data Element");
