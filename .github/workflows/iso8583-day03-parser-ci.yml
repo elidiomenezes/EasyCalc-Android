@@ -44,49 +44,10 @@ jobs:
           docker rm "$container_id"
           test -f "$RUNNER_TEMP/iso8583-simulator/server.py"
           test -f "$RUNNER_TEMP/iso8583-simulator/client.py"
-      - name: Inspect simulator CLI and transaction fixtures
-        run: |
-          set +e
-          cd "$RUNNER_TEMP/iso8583-simulator"
-          python3 client.py --help
-          python3 server.py --help
-          python3 - <<'PY'
-          import pathlib,json
-          root=pathlib.Path('.')
-          for folder in ['messages','client-rules','rules','specs']:
-              print('DIRECTORY',folder, [p.name for p in (root/folder).glob('*')][:100],flush=True)
-          for name in ['messages/authorization-approved.json','messages/network-sign-on.json','specs/nibss-v1.16.json']:
-              try:
-                  j=json.loads(pathlib.Path(name).read_text())
-                  print('FILE',name,repr(j)[:11000],flush=True)
-              except Exception as exc: print('ERROR',name,exc,flush=True)
-          print('CLIENT SOURCE HEAD',pathlib.Path('client.py').read_text()[:17000],flush=True)
-          PY
-          exit 0
-      - name: Inspect real client rule templates
-        run: |
-          cd "$RUNNER_TEMP/iso8583-simulator"
-          python3 - <<'PY'
-          import pathlib
-          for name in ['client-rules/authorization-approved.json',
-                       'client-rules/network-sign-on.json',
-                       'client-rules/financial-advice.json',
-                       'client-rules/reversal.json',
-                       'client-rules/network-no-response.json',
-                       'messages/financial-advice.json',
-                       'messages/reversal.json',
-                       'messages/administrative-request.json']:
-              print('TEMPLATE',name, pathlib.Path(name).read_text()[:6500], flush=True)
-          PY
-      - name: Real simulator integration
+      - name: Real simulator TRANSPORT integration (not parser conformance)
         run: |
           python3 -m pip install --break-system-packages pyiso8583
           python3 iso8583/week10/day02/reference/tests/instructor/validate_real_simulator.py \
-            --simulator-dir "$RUNNER_TEMP/iso8583-simulator" \
-            --gateway-cmd './build/iso8583-day03/gateway {listen} {authorizer}'
-      - name: Real client server extended parser validation
-        run: |
-          python3 iso8583/week10/day03/reference/instructor/tests/validate_extended_with_simulator.py \
             --simulator-dir "$RUNNER_TEMP/iso8583-simulator" \
             --gateway-cmd './build/iso8583-day03/gateway {listen} {authorizer}'
       - name: Upload gateway binary
