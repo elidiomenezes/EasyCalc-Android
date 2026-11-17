@@ -9,7 +9,7 @@ namespace payment_gateway {
 
 // The three wire formats covered in this assignment.
 // 'unused' means that this project has no definition for the DE.
-enum class FieldFormat { unused, fixed, llvar, lllvar };
+enum class FieldFormat { unused, fixed, llvar, lllvar, llllvar };
 
 struct FieldSpec {
     FieldFormat format = FieldFormat::unused;
@@ -61,7 +61,7 @@ public:
                                     std::size_t& offset,
                                     std::size_t maximum);
 
-    // Task 3: decode a 16-character ASCII-hex primary bitmap. When its
+    // Instructor reference supports LLLLVAR for NIBSS DE63 and DE124.\n    static std::string parse_llllvar(const std::string& wire,\n                                     std::size_t& offset,\n                                     std::size_t maximum);\n\n    // Task 3: decode a 16-character ASCII-hex primary bitmap. When its
     // first bit is set, read and decode a 16-character secondary bitmap.
     // Update offset past all consumed bitmap characters. Bits are numbered
     // MSB first. present[1] stays false because DE1 is the indicator.
