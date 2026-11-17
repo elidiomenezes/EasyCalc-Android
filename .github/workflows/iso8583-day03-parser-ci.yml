@@ -1,0 +1,44 @@
+name: ISO8583 Gateway Parser Validation
+
+on:
+  push:
+    paths:
+      - 'iso8583/week10/day03/reference/**'
+      - '.github/workflows/iso8583-day03-parser-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  gateway-parser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install C++17 toolchain and Boost
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libboost-dev libboost-system-dev python3
+      - name: Configure
+        run: cmake -S iso8583/week10/day03/reference -B build/iso8583-day03 -DCMAKE_BUILD_TYPE=Debug
+      - name: Build gateway and parser
+        run: cmake --build build/iso8583-day03 --parallel 2
+      - name: Public parser tests
+        run: ctest --test-dir build/iso8583-day03 --output-on-failure
+      - name: Hidden parser grading
+        run: |
+          python3 iso8583/week10/day03/reference/instructor/grading/grade_parser.py \
+            iso8583/week10/day03/reference
+      - name: Original gateway public TCP tests
+        run: |
+          python3 iso8583/week10/day02/reference/tests/public/test_gateway.py \
+            --gateway-cmd './build/iso8583-day03/gateway {listen} {authorizer}'
+      - name: Original gateway hidden TCP tests
+        run: |
+          python3 iso8583/week10/day02/reference/tests/instructor/test_hidden_gateway.py \
+            --gateway-cmd './build/iso8583-day03/gateway {listen} {authorizer}'
+      - name: Upload gateway binary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateway-day03-parser
+          path: build/iso8583-day03/gateway
+          if-no-files-found: ignore
