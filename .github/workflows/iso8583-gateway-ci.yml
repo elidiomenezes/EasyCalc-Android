@@ -5,11 +5,13 @@ on:
   workflow_dispatch:
 jobs:
   codec:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Install Day 4 dependencies
-        run: sudo timeout 90s env DEBIAN_FRONTEND=noninteractive apt-get install -y libboost-dev libsqlite3-dev
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Acquire::Retries=3 libboost-dev libsqlite3-dev
       - name: Extract Day 5 code-only package
         run: unzip -q ci/iso8583-codec-only.zip
       - name: Configure
