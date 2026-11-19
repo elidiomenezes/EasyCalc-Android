@@ -1,23 +1,20 @@
-name: ISO8583 mock gateway verification
+name: ISO8583 Day 5 codec-only verification
 on:
   push:
     branches: [ci-iso8583-gateway-20261119]
   workflow_dispatch:
 jobs:
-  gateway:
+  codec:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install missing C++ headers
-        run: |
-          test -f /usr/include/sqlite3.h || echo "sqlite3 header missing"
-          test -f /usr/include/boost/asio.hpp || echo "Boost Asio header missing"
-          sudo timeout 90s env DEBIAN_FRONTEND=noninteractive apt-get install -y libboost-dev libsqlite3-dev
-      - name: Extract isolated course test fixture
-        run: unzip -q ci/iso8583-gateway.zip
+      - name: Install Day 4 dependencies
+        run: sudo timeout 90s env DEBIAN_FRONTEND=noninteractive apt-get install -y libboost-dev libsqlite3-dev
+      - name: Extract Day 5 code-only package
+        run: unzip -q ci/iso8583-codec-only.zip
       - name: Configure
-        run: cmake -S day05_mock_gateway -B build -DCMAKE_BUILD_TYPE=Debug
+        run: cmake -S day05_codec_only -B build -DCMAKE_BUILD_TYPE=Debug
       - name: Build
         run: cmake --build build -j2
-      - name: Test gateway and codec
+      - name: Test
         run: ctest --test-dir build --output-on-failure
