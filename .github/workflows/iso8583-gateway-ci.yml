@@ -1,4 +1,4 @@
-name: ISO8583 Day 5 codec-only verification
+name: ISO8583 Day 5 complete regression
 on:
   push:
     branches: [ci-iso8583-gateway-20261119]
@@ -10,13 +10,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Day 4 dependencies
-        run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Acquire::Retries=3 libboost-dev libsqlite3-dev
-      - name: Extract Day 5 code-only package
-        run: unzip -q ci/iso8583-codec-only.zip
+        run: sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Acquire::Retries=3 libboost-dev libsqlite3-dev
+      - name: Extract Day 5 regression package
+        run: unzip -q ci/iso8583-regression.zip
       - name: Configure
         run: cmake -S day05_codec_only -B build -DCMAKE_BUILD_TYPE=Debug
       - name: Build
         run: cmake --build build -j2
-      - name: Test
+      - name: Run full Day 4 and Day 5 regression
         run: ctest --test-dir build --output-on-failure
