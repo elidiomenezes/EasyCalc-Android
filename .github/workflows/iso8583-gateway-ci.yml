@@ -8,12 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Verify toolchain
+      - name: Install missing C++ headers
         run: |
-          cmake --version
-          g++ --version
-          test -f /usr/include/sqlite3.h
-          test -f /usr/include/boost/asio.hpp
+          test -f /usr/include/sqlite3.h || echo "sqlite3 header missing"
+          test -f /usr/include/boost/asio.hpp || echo "Boost Asio header missing"
+          sudo timeout 90s env DEBIAN_FRONTEND=noninteractive apt-get install -y libboost-dev libsqlite3-dev
       - name: Extract isolated course test fixture
         run: unzip -q ci/iso8583-gateway.zip
       - name: Configure
