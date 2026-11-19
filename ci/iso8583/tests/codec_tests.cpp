@@ -4,6 +4,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <random>
 
 using payment_gateway::ComposeError;
 using payment_gateway::Iso8583Parser;
@@ -107,5 +108,58 @@ int main() {
     const auto wire = alternate.compose(custom);
     same(alternate.parse(wire), custom);
 
-    std::cout << "Codec tests passed\n";
+    // Independently constructed bitmap oracle for every configured DE.
+    // Compare to manually calculated bit position, not to the codec parser.
+    const auto specs = Iso8583Parser::nibss_fields();
+    unsigned field_cases = 0;
+    for (unsigned de = 2; de <= 128; ++de) {
+        const auto spec = specs[de];
+        if (spec.format == payment_gateway::FieldFormat::unused) continue;
+        ++field_cases;
+        for (std::size_t len : {std::size_t{0}, std::size_t{1}, spec.maximum}) {
+            if (spec.format == payment_gateway::FieldFormat::fixed && len != spec.maximum)
+                continue;
+            if (spec.format != payment_gateway::FieldFormat::fixed && len > spec.maximum)
+                continue;
+            ParsedMessage candidate;
+            candidate.mti = "0100";
+            candidate.present[de] = true;
+            candidate.fields[de] = std::string(len, 'X');
+            const auto encoded = codec.compose(candidate);
+            const auto roundtrip = codec.parse(encoded);
+            same(candidate, roundtrip);
+            const bool secondary_bit = de > 64;
+            assert(encoded.size() >= 20 + (secondary_bit ? 16 : 0));
+            // The presence bitmap is hexadecimal. Independently check the
+            // hexadecimal digit containing the DE's single active bit.
+            const std::size_t hex_offset = 4 + (de - 1) / 4;
+            const unsigned mask = 8u >> ((de - 1) % 4);
+            const char hex = "0123456789ABCDEF"[mask];
+            assert(encoded[hex_offset] == hex);
+            assert(encoded[4] == (secondary_bit ? '8' :
+                                  (de >= 2 && de <= 4 ? hex : '0')));
+        }
+    }
+
+    // Deterministic property tests over combinations of fields, including
+    // binary NUL in opaque data values.
+    std::mt19937 rng(0x8583);
+    for (unsigned trial = 0; trial < 1000; ++trial) {
+        ParsedMessage candidate;
+        candidate.mti = "0100";
+        for (unsigned de = 2; de <= 128; ++de) {
+            const auto spec = specs[de];
+            if (spec.format == payment_gateway::FieldFormat::unused || rng() % 9 != 0)
+                continue;
+            auto len = spec.format == payment_gateway::FieldFormat::fixed
+                ? spec.maximum : rng() % (spec.maximum + 1);
+            candidate.present[de] = true;
+            candidate.fields[de] = std::string(len, static_cast<char>(rng() % 256));
+        }
+        const auto encoded = codec.compose(candidate);
+        same(codec.parse(encoded), candidate);
+    }
+
+    std::cout << "Codec tests passed: " << field_cases
+              << " supported DEs + 1000 randomized messages\n";
 }
