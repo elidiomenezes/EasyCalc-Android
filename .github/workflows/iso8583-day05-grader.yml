@@ -13,9 +13,18 @@ jobs:
         run: sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Acquire::Retries=3 libboost-dev libsqlite3-dev
       - name: Extract grader and reference solution
         run: unzip -q ci/day05-grader-ci.zip
-      - name: Configure
+      - name: Configure reference
         run: cmake -S day05_grader/reference -B day05-grader-build -DCMAKE_BUILD_TYPE=Debug -DDAY05_RESERVED_TESTS=ON
       - name: Build reference gateway
         run: cmake --build day05-grader-build -j2
       - name: Run codec, SQLite, valid persistence, public and reserved tests
         run: ctest --test-dir day05-grader-build -R '^(parser_complete|composer_complete|sqlite_|persistence_(authorized|declined|pending|reversal|parallel)$|day05_)' --output-on-failure
+      - name: Build unfinished student baseline for negative control
+        run: cmake -S day05_codec_only -B day05-baseline-build -DCMAKE_BUILD_TYPE=Debug && cmake --build day05-baseline-build -j2
+      - name: Prove grader rejects unmodified baseline
+        run: |
+          if python3 day05_grader/public/test_day05_gateway.py --gateway ./day05-baseline-build/gateway --case amount; then
+            echo "ERROR: unfinished gateway unexpectedly passed the local-rejection test"
+            exit 1
+          fi
+          echo "PASS negative control: unmodified gateway fails the Day 5 requirement"
