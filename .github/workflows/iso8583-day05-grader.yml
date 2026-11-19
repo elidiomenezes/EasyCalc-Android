@@ -19,6 +19,8 @@ jobs:
         run: cmake --build day05-grader-build -j2
       - name: Run codec, SQLite, valid persistence, public and reserved tests
         run: ctest --test-dir day05-grader-build -R '^(parser_complete|composer_complete|sqlite_|persistence_(authorized|declined|pending|reversal|parallel)$|day05_)' --output-on-failure
+      - name: Verify 75-point practical scoring
+        run: python3 day05_grader/grade.py --gateway ./day05-grader-build/gateway --report day05-grade.json
       - name: Build unfinished student baseline for negative control
         run: cmake -S day05_codec_only -B day05-baseline-build -DCMAKE_BUILD_TYPE=Debug && cmake --build day05-baseline-build -j2
       - name: Prove grader rejects unmodified baseline
