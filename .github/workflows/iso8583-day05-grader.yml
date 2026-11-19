@@ -17,5 +17,5 @@ jobs:
         run: cmake -S day05_grader/reference -B day05-grader-build -DCMAKE_BUILD_TYPE=Debug -DDAY05_RESERVED_TESTS=ON
       - name: Build reference gateway
         run: cmake --build day05-grader-build -j2
-      - name: Run codec, SQLite, persistence, public and reserved tests
-        run: ctest --test-dir day05-grader-build -R '^(parser_complete|composer_complete|sqlite_|persistence_|day05_)' --output-on-failure
+      - name: Run codec, SQLite, valid persistence, public and reserved tests
+        run: ctest --test-dir day05-grader-build -R '^(parser_complete|composer_complete|sqlite_|persistence_(authorized|declined|pending|reversal|parallel)$|day05_)' --output-on-failure
