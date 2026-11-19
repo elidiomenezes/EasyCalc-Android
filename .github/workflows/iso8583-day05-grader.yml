@@ -1,0 +1,21 @@
+name: ISO8583 Day 5 gateway grader
+on:
+  push:
+    branches: [ci-iso8583-gateway-20261119]
+  workflow_dispatch:
+jobs:
+  grader:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Acquire::Retries=3 libboost-dev libsqlite3-dev
+      - name: Extract grader and reference solution
+        run: unzip -q ci/day05-grader-ci.zip
+      - name: Configure
+        run: cmake -S day05_grader/reference -B day05-grader-build -DCMAKE_BUILD_TYPE=Debug -DDAY05_RESERVED_TESTS=ON
+      - name: Build reference gateway
+        run: cmake --build day05-grader-build -j2
+      - name: Run codec, SQLite, persistence, public and reserved tests
+        run: ctest --test-dir day05-grader-build -R '^(parser_complete|composer_complete|sqlite_|persistence_|day05_)' --output-on-failure
