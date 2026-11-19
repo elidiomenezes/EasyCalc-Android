@@ -8,8 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake g++ libboost-dev libsqlite3-dev python3
+      - name: Verify toolchain
+        run: |
+          cmake --version
+          g++ --version
+          test -f /usr/include/sqlite3.h
+          test -f /usr/include/boost/asio.hpp
       - name: Extract isolated course test fixture
         run: unzip -q ci/iso8583-gateway.zip
       - name: Configure
