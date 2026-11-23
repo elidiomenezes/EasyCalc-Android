@@ -197,7 +197,7 @@ def run():
         # SQLite lock: explicit bounded wait and technical failure, not 03.
         with sqlite3.connect(db,timeout=1) as lock:
             lock.execute("BEGIN EXCLUSIVE")
-            lock.execute("UPDATE authorized_merchants SET merchant_id=merchant_id")
+            lock.execute("UPDATE authorized_merchants SET merchant_ref=merchant_ref")
             p,l=launch(db,port())
             try:
                 start=time.monotonic()
