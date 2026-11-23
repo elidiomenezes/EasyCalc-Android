@@ -187,6 +187,17 @@ replacement=r'''void Session::start() {
             }
             try {
                 auto response=parser.parse(output.substr(2));
+                std::string expected_mti=request.mti;
+                if(expected_mti.size()!=4 || expected_mti[2]<'0' || expected_mti[2]>'8')
+                    throw std::runtime_error("unsupported request MTI response pair");
+                ++expected_mti[2];
+                if(response.mti!=expected_mti)
+                    throw std::runtime_error("upstream response MTI mismatch");
+                for(int de : {11,13,37}) {
+                    if(request.present[de] &&
+                       (!response.present[de] || request.fields[de]!=response.fields[de]))
+                        throw std::runtime_error("upstream response correlation mismatch");
+                }
                 record_transaction(response,"response");
             } catch(const std::exception& e) {
                 log(std::string("Upstream response error: ")+e.what());
