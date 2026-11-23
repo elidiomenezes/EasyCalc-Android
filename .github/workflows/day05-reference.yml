@@ -28,6 +28,12 @@ jobs:
           python3 ci/day05/test_regression.py /tmp/day05/build/gateway "$P/schema.sql"
           python3 ci/day05/test_failures.py /tmp/day05/build/gateway "$P/schema.sql"
           python3 ci/day05/test_stress.py /tmp/day05/build/gateway "$P/schema.sql"
+      - name: Run existing Day 5 public and reserved grader
+        run: |
+          git fetch --no-tags origin ci-iso8583-gateway-20261119
+          git show FETCH_HEAD:ci/day05-grader-ci.zip > /tmp/day05-grader-ci.zip
+          unzip -q /tmp/day05-grader-ci.zip
+          python3 day05_grader/grade.py --gateway /tmp/day05/build/gateway --report /tmp/day05-grade.json
       - name: Package validated source
         if: success()
         run: |
