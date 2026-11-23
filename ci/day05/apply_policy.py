@@ -199,3 +199,72 @@ for i in range(1,11):
     s+=f"INSERT OR IGNORE INTO authorized_merchants(merchant_id) VALUES('MERCHANT{i:07d}');\n"
 schema.write_text(s)
 print("Day 5 policy installed into Day 4 source")
+
+# Preserve the complete Day 4 codec, including LLLLVAR, and add compose in place.
+hpp=root/"include/iso8583_parser.hpp"
+h=hpp.read_text()
+if "class ComposeError" not in h:
+    h=h.replace("class Iso8583Parser", "class ComposeError : public std::runtime_error {\npublic:\n    using std::runtime_error::runtime_error;\n};\n\nclass Iso8583Parser",1)
+if "compose(const ParsedMessage&" not in h:
+    h=h.replace("private:\n    FieldTable fields_", "    std::string compose(const ParsedMessage& message) const;\n\nprivate:\n    FieldTable fields_",1)
+    assert "compose(const ParsedMessage&" in h, "missing codec insertion"
+hpp.write_text(h)
+cpp=root/"src/iso8583_parser.cpp"
+s=cpp.read_text()
+if "Iso8583Parser::compose(" not in s:
+    extra=r'''
+namespace {
+bool day05_digits(const std::string& s) {
+    return std::all_of(s.begin(),s.end(),[](unsigned char c){return c>='0' && c<='9';});
+}
+std::string day05_bitmap(const Iso8583Parser::PresenceMap& present,unsigned first) {
+    static const char hex[]="0123456789ABCDEF";
+    std::string s;
+    for(unsigned n=0;n<16;++n) {
+        unsigned bits=0;
+        for(unsigned b=0;b<4;++b)if(present[first+n*4+b])bits|=(8U>>b);
+        s+=hex[bits];
+    }
+    return s;
+}
+void day05_length(std::string& output,std::size_t length,unsigned width) {
+    const std::string decimal=std::to_string(length);
+    output.append(width-decimal.size(),'0');
+    output+=decimal;
+}
+}
+std::string Iso8583Parser::compose(const ParsedMessage& msg) const {
+    if(msg.mti.size()!=4 || !day05_digits(msg.mti))throw ComposeError("invalid MTI");
+    if(msg.present[0] || msg.present[1])throw ComposeError("reserved data element");
+    auto bitmap=msg.present;
+    bool secondary=false;
+    for(unsigned de=2;de<=128;++de) {
+        if(!msg.present[de])continue;
+        const auto spec=fields_[de];
+        const std::size_t n=msg.fields[de].size();
+        if(spec.format==FieldFormat::unused)throw ComposeError("unsupported data element");
+        if(spec.format==FieldFormat::fixed && n!=spec.maximum)throw ComposeError("fixed length mismatch");
+        if(spec.format!=FieldFormat::fixed && n>spec.maximum)throw ComposeError("variable length too long");
+        if(spec.format==FieldFormat::llvar && n>99)throw ComposeError("LLVAR prefix overflow");
+        if(spec.format==FieldFormat::lllvar && n>999)throw ComposeError("LLLVAR prefix overflow");
+        if(spec.format==FieldFormat::llllvar && n>9999)throw ComposeError("LLLLVAR prefix overflow");
+        if(de>64)secondary=true;
+    }
+    bitmap[1]=secondary;
+    std::string output=msg.mti+day05_bitmap(bitmap,1);
+    if(secondary)output+=day05_bitmap(bitmap,65);
+    for(unsigned de=2;de<=128;++de) {
+        if(!msg.present[de])continue;
+        auto format=fields_[de].format;
+        if(format==FieldFormat::llvar)day05_length(output,msg.fields[de].size(),2);
+        else if(format==FieldFormat::lllvar)day05_length(output,msg.fields[de].size(),3);
+        else if(format==FieldFormat::llllvar)day05_length(output,msg.fields[de].size(),4);
+        output+=msg.fields[de];
+    }
+    return output;
+}
+'''
+    pos=s.rfind("} // namespace payment_gateway")
+    assert pos>0, "unexpected codec namespace layout"
+    s=s[:pos]+extra+s[pos:]
+cpp.write_text(s)
