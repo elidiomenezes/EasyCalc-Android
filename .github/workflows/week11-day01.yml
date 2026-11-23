@@ -1,0 +1,40 @@
+name: Week 11 Day 1 exercise fixture validation
+on:
+  push:
+    branches: [exercise/week11-day01]
+    paths:
+      - 'iso8583/canonical-gateway/**'
+      - 'week11/day01/**'
+      - '.github/workflows/week11-day01.yml'
+  workflow_dispatch:
+jobs:
+  verify-fixture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq g++ cmake libboost-dev libsqlite3-dev
+      - name: Build exercise gateway with debug symbols
+        run: |
+          cmake -S iso8583/canonical-gateway -B /tmp/week11-day01-build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build /tmp/week11-day01-build -j2
+          ctest --test-dir /tmp/week11-day01-build --output-on-failure
+      - name: Verify normal authorization still works
+        run: |
+          python3 week11/day01/test_acceptance.py /tmp/week11-day01-build/gateway iso8583/canonical-gateway/schema.sql --scenario normal
+      - name: Negative control: exercise must reproduce a failed local-persistence acceptance
+        run: |
+          if python3 week11/day01/test_acceptance.py /tmp/week11-day01-build/gateway iso8583/canonical-gateway/schema.sql --scenario local; then
+            echo "Unexpected result: exercise accepted every local-persistence scenario"
+            exit 1
+          fi
+          echo "PASS: exercise fixture reproduces the intended observable malfunction"
+      - name: Verify untouched canonical source passes the exact acceptance test
+        run: |
+          git fetch --no-tags origin canonical/iso8583-gateway-complete
+          mkdir -p /tmp/week11-canonical
+          git archive FETCH_HEAD iso8583/canonical-gateway | tar -x -C /tmp/week11-canonical
+          P=/tmp/week11-canonical/iso8583/canonical-gateway
+          cmake -S "$P" -B /tmp/week11-canonical-build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build /tmp/week11-canonical-build -j2
+          python3 week11/day01/test_acceptance.py /tmp/week11-canonical-build/gateway "$P/schema.sql" --scenario local
