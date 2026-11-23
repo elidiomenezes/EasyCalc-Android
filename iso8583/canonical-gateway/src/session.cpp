@@ -300,7 +300,7 @@ void Session::start() {
                 std::string output=framed(parser.compose(response));
                 try {
                     record_transaction(request,"request");
-                    record_transaction(response,"response");
+                    record_transaction(response,"request");
                 } catch(const std::exception& e) {
                     log(std::string("Decline persistence error: ")+e.what());
                 }
