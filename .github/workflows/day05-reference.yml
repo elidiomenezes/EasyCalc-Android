@@ -23,6 +23,7 @@ jobs:
           cmake --build /tmp/day05/build -j 2
           ctest --test-dir /tmp/day05/build --output-on-failure
           python3 ci/day05/test_policy.py /tmp/day05/build/gateway "$P/schema.sql"
+          python3 ci/day05/test_edges.py /tmp/day05/build/gateway "$P/schema.sql"
       - name: Package validated source
         if: success()
         run: |
