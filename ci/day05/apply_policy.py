@@ -160,8 +160,10 @@ replacement=r'''void Session::start() {
                 const auto response=make_decline(request,reason);
                 std::string output=framed(parser.compose(response));
                 try {
-                    record_transaction(request,"request");
-                    record_transaction(response,"response");
+                    if(reason!="96") {
+                        record_transaction(request,"request");
+                        record_transaction(response,"response");
+                    }
                 } catch(const std::exception& e) {
                     log(std::string("Decline persistence error: ")+e.what());
                 }
@@ -216,9 +218,14 @@ replacement=r'''void Session::start() {
 '''
 code=code[:start]+insertion+replacement+code[end:]
 source.write_text(code)
+db_source=root/"src/database.cpp"
+d=db_source.read_text()
+assert 'sqlite3_busy_timeout(db_,400)' in d
+db_source.write_text(d.replace('sqlite3_busy_timeout(db_,400)', 'sqlite3_busy_timeout(db_,1500)'))
 schema=root/"schema.sql"
 s=schema.read_text()
 s+='''
+PRAGMA journal_mode=WAL;
 CREATE TABLE IF NOT EXISTS authorized_merchants (
     merchant_ref TEXT PRIMARY KEY NOT NULL
 );
