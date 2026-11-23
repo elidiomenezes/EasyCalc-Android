@@ -43,6 +43,24 @@ jobs:
           python3 day05_grader/grade.py --gateway /tmp/day05/build/gateway --report /tmp/day05-grade.json || { cat /tmp/day05-grade.json; exit 1; }
       - name: Stress and fuzz after grader
         run: python3 ci/day05/test_stress.py /tmp/day05/build/gateway /tmp/day05/ISO8583_Day04_Course_Pack/instructor/reference/schema.sql
+      - name: Validate Week 11 Day 1 exercise against canonical
+        run: |
+          git fetch --no-tags origin exercise/week11-day01 canonical/iso8583-gateway-complete
+          mkdir -p /tmp/week11-exercise /tmp/week11-canonical
+          git archive origin/exercise/week11-day01 iso8583/canonical-gateway week11/day01/test_acceptance.py | tar -x -C /tmp/week11-exercise
+          git archive origin/canonical/iso8583-gateway-complete iso8583/canonical-gateway | tar -x -C /tmp/week11-canonical
+          E=/tmp/week11-exercise/iso8583/canonical-gateway
+          C=/tmp/week11-canonical/iso8583/canonical-gateway
+          cmake -S "$E" -B /tmp/week11-exercise-build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build /tmp/week11-exercise-build -j2
+          python3 /tmp/week11-exercise/week11/day01/test_acceptance.py /tmp/week11-exercise-build/gateway "$E/schema.sql" --scenario normal
+          if python3 /tmp/week11-exercise/week11/day01/test_acceptance.py /tmp/week11-exercise-build/gateway "$E/schema.sql" --scenario local; then
+            echo "ERROR: exercise did not expose intended observable malfunction"; exit 1
+          fi
+          echo "PASS: controlled exercise reproduces incorrect SQLite outcome"
+          cmake -S "$C" -B /tmp/week11-canonical-build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build /tmp/week11-canonical-build -j2
+          python3 /tmp/week11-exercise/week11/day01/test_acceptance.py /tmp/week11-canonical-build/gateway "$C/schema.sql" --scenario local
       - name: Package validated source
         if: success()
         run: |
