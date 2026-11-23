@@ -195,12 +195,15 @@ def run():
         print("PASS: unavailable database fail-closed",flush=True)
 
         # SQLite lock: explicit bounded wait and technical failure, not 03.
-        with sqlite3.connect(db,timeout=1) as prep:
+        lock_db=Path(td)/"locked.sqlite"
+        with sqlite3.connect(lock_db) as prep:
+            prep.executescript(Path(SCHEMA).read_text())
+            prep.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             prep.execute("PRAGMA journal_mode=DELETE")
-        with sqlite3.connect(db,timeout=1) as lock:
+        with sqlite3.connect(lock_db,timeout=1) as lock:
             lock.execute("BEGIN EXCLUSIVE")
             lock.execute("UPDATE authorized_merchants SET merchant_ref=merchant_ref")
-            p,l=launch(db,port())
+            p,l=launch(lock_db,port())
             try:
                 start=time.monotonic()
                 exchange(l,make_req(3062),"96")
