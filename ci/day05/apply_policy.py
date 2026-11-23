@@ -111,8 +111,8 @@ std::string decision(const ParsedMessage& request, Database* db) {
     if(!valid_luhn(request.fields[2]))return "14";
     if(!db)return "96";
     try {
-        auto stmt=db->prepare("SELECT 1 FROM authorized_merchants WHERE merchant_id=:merchant LIMIT 1");
-        stmt.bind(":merchant",std::string_view(request.fields[42]));
+        auto stmt=db->prepare("SELECT 1 FROM authorized_merchants WHERE merchant_ref=:merchant LIMIT 1");
+        stmt.bind(":merchant",std::string_view(right_trim(request.fields[42])));
         return stmt.step() ? "" : "03";
     } catch(const std::exception& error) {
         log(std::string("Merchant database error: ")+error.what());
@@ -220,11 +220,11 @@ schema=root/"schema.sql"
 s=schema.read_text()
 s+='''
 CREATE TABLE IF NOT EXISTS authorized_merchants (
-    merchant_id TEXT PRIMARY KEY NOT NULL
+    merchant_ref TEXT PRIMARY KEY NOT NULL
 );
 '''
 for i in range(1,11):
-    s+=f"INSERT OR IGNORE INTO authorized_merchants(merchant_id) VALUES('MERCHANT{i:07d}');\n"
+    s+=f"INSERT OR IGNORE INTO authorized_merchants(merchant_ref) VALUES('MERCHANT{i:07d}');\n"
 schema.write_text(s)
 print("Day 5 policy installed into Day 4 source")
 
