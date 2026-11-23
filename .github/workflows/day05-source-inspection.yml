@@ -1,0 +1,20 @@
+name: Week 10 Day 5 source inspection
+on:
+  push:
+    branches: [ci/day04-validation]
+    paths:
+      - .github/workflows/day05-source-inspection.yml
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect Day 4 reference source
+        run: |
+          unzip -q ci/day04/ISO8583_Day04_Complete_Course_Pack.zip -d /tmp/day04
+          P=/tmp/day04/ISO8583_Day04_Course_Pack/instructor/reference
+          for f in include/gateway.hpp include/session.hpp include/database.hpp src/gateway.cpp src/session.cpp src/main.cpp src/database.cpp schema.sql CMakeLists.txt; do
+            echo "======== $f ========"
+            cat "$P/$f"
+          done
