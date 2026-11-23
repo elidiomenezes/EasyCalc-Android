@@ -211,11 +211,14 @@ def run():
         mismatch=Mock(response_stan="999999")
         p,l=launch(db,mismatch.port)
         try:
-            exchange(l,make_req(3070),"00")
+            with socket.create_connection(("127.0.0.1",l),timeout=2) as sock:
+                sock.settimeout(2)
+                sock.sendall(make_req(3070))
+                assert sock.recv(2)==b"","mismatched response leaked to client"
             with sqlite3.connect(db) as con:
                 row=con.execute("SELECT status,outcome_code FROM transactions WHERE stan='003070'").fetchone()
             assert row==("PENDING",None),row
         finally:
             p.terminate();p.wait(timeout=3);mismatch.close()
-        print("PASS: mismatched response STAN does not falsely complete database transaction",flush=True)
+        print("PASS: mismatched response STAN not forwarded or recorded as completed",flush=True)
 if __name__=="__main__":run()
