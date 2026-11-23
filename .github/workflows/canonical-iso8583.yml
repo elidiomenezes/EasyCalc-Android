@@ -1,0 +1,51 @@
+name: Materialize canonical ISO8583 gateway
+on:
+  push:
+    branches: [canonical/iso8583-gateway-complete]
+    paths:
+      - 'ci/day05/**'
+      - '.github/workflows/canonical-iso8583.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  canonical:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq cmake g++ libboost-dev libsqlite3-dev
+      - name: Build full gateway from the Day 4 reference
+        run: |
+          unzip -q ci/day04/ISO8583_Day04_Complete_Course_Pack.zip -d /tmp/iso8583-source
+          P=/tmp/iso8583-source/ISO8583_Day04_Course_Pack/instructor/reference
+          python3 ci/day05/apply_policy.py "$P"
+          cmake -S "$P" -B /tmp/iso8583-canonical-build
+          cmake --build /tmp/iso8583-canonical-build -j2
+          ctest --test-dir /tmp/iso8583-canonical-build --output-on-failure
+          python3 ci/day05/test_policy.py /tmp/iso8583-canonical-build/gateway "$P/schema.sql"
+          python3 ci/day05/test_edges.py /tmp/iso8583-canonical-build/gateway "$P/schema.sql"
+          python3 ci/day05/test_timeout.py /tmp/iso8583-canonical-build/gateway "$P/schema.sql"
+          python3 ci/day05/test_regression.py /tmp/iso8583-canonical-build/gateway "$P/schema.sql"
+          python3 ci/day05/test_failures.py /tmp/iso8583-canonical-build/gateway "$P/schema.sql"
+          python3 ci/day05/test_stress.py /tmp/iso8583-canonical-build/gateway "$P/schema.sql"
+      - name: Commit canonical source only on instructor branch
+        run: |
+          P=/tmp/iso8583-source/ISO8583_Day04_Course_Pack/instructor/reference
+          mkdir -p iso8583/canonical-gateway
+          cp -a "$P/." iso8583/canonical-gateway/
+          cat > iso8583/canonical-gateway/CANONICAL.md <<'EOF'
+          # Canonical ISO 8583 gateway — instructor only
+
+          This is the completed reference implementation for the end of Week 10.
+          Use it as the clean baseline for Week 11 debugging exercises.
+          Do not copy this directory or any instructor reference into student lesson packages.
+          Create separate defect branches from this canonical branch; do not modify the baseline.
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add iso8583/canonical-gateway
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: freeze validated canonical ISO8583 gateway source"
+            git push origin HEAD:canonical/iso8583-gateway-complete
+          fi
