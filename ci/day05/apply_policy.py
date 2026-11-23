@@ -25,6 +25,23 @@ bool wait_fd(int fd, short events, int ms) {
     if (rc<=0) return false;
     return (p.revents & events)!=0 && !(p.revents & (POLLERR|POLLNVAL));
 }
+bool connect_bounded(tcp::socket& socket,const tcp::endpoint& endpoint,int ms) {
+    boost::system::error_code ec;
+    socket.open(tcp::v4(),ec);
+    if(ec)return false;
+    socket.non_blocking(true,ec);
+    if(ec)return false;
+    socket.connect(endpoint,ec);
+    if(ec && ec!=asio::error::in_progress && ec!=asio::error::would_block)return false;
+    if(ec) {
+        if(!wait_fd(socket.native_handle(),POLLOUT,ms))return false;
+        int so_error=0;
+        socklen_t len=sizeof(so_error);
+        if(::getsockopt(socket.native_handle(),SOL_SOCKET,SO_ERROR,&so_error,&len)<0 || so_error!=0)return false;
+    }
+    socket.non_blocking(false,ec);
+    return !ec;
+}
 bool read_exact(int fd, char* data, std::size_t n, int timeout) {
     const auto deadline=std::chrono::steady_clock::now()+std::chrono::milliseconds(timeout);
     std::size_t done=0;
@@ -117,7 +134,7 @@ ParsedMessage make_decline(const ParsedMessage& request, const std::string& code
 }
 } // namespace
 '''
-headers = '#include <poll.h>\n#include <sys/socket.h>\n#include <cerrno>\n#include <chrono>\n#include <string_view>\n'
+headers = '#include <poll.h>\n#include <sys/socket.h>\n#include <netinet/in.h>\n#include <cerrno>\n#include <chrono>\n#include <string_view>\n'
 code=code.replace('#include "session.hpp"', '#include "session.hpp"\n'+headers,1)
 start=code.index(anchor)
 end=code.index("\nvoid Session::read_client()",start)
@@ -155,9 +172,9 @@ replacement=r'''void Session::start() {
                 continue;
             }
             if(!authorizer_.is_open()) {
-                boost::system::error_code error;
-                authorizer_.connect(destination_,error);
-                if(error){log("Upstream unavailable: "+error.message());break;}
+                if(!connect_bounded(authorizer_,destination_,upstream_timeout)) {
+                    log("Upstream connect failed or timed out");break;
+                }
             }
             try { record_transaction(request,"request"); }
             catch(const std::exception& e){log(std::string("Request persistence error: ")+e.what());}
