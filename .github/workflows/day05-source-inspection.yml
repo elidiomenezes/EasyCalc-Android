@@ -4,6 +4,8 @@ on:
     branches: [ci/day04-validation]
     paths:
       - .github/workflows/day05-source-inspection.yml
+  pull_request:
+    branches: [ci/day04-validation]
   workflow_dispatch:
 jobs:
   inspect:
