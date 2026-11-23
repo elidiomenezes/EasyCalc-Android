@@ -195,6 +195,8 @@ def run():
         print("PASS: unavailable database fail-closed",flush=True)
 
         # SQLite lock: explicit bounded wait and technical failure, not 03.
+        with sqlite3.connect(db,timeout=1) as prep:
+            prep.execute("PRAGMA journal_mode=DELETE")
         with sqlite3.connect(db,timeout=1) as lock:
             lock.execute("BEGIN EXCLUSIVE")
             lock.execute("UPDATE authorized_merchants SET merchant_ref=merchant_ref")
