@@ -32,16 +32,11 @@ jobs:
           git fetch --no-tags origin ci-iso8583-gateway-20261119
           git show FETCH_HEAD:ci/day05-grader-ci.zip > /tmp/day05-grader-ci.zip
           unzip -q /tmp/day05-grader-ci.zip
-          echo '=== Grader file tree ==='
-          find day05_grader -maxdepth 3 -type f | sort
-          echo '=== Runner ==='
-          cat day05_grader/grade.py
-          echo '=== Blackbox test ==='
-          cat day05_grader/public/test_day05_gateway.py
-          echo '=== Reference schema ==='
-          cat day05_grader/reference/schema.sql
-          echo '=== Public persistence harness ==='
-          sed -n '1,290p' day05_codec_only/tests/public/test_persistence.py
+          P=/tmp/day05/ISO8583_Day04_Course_Pack/instructor/reference
+          g++ -std=c++17 -Wall -Wextra -I "$P/include" day05_grader/reference/tests/test_compose.cpp "$P/src/iso8583_parser.cpp" -o /tmp/day05/test_compose
+          /tmp/day05/test_compose
+          g++ -std=c++17 -Wall -Wextra -I "$P/include" day05_grader/reference/tests/test_database_wrapper.cpp "$P/src/database.cpp" -lsqlite3 -o /tmp/day05/test_database
+          /tmp/day05/test_database
           python3 day05_grader/grade.py --gateway /tmp/day05/build/gateway --report /tmp/day05-grade.json || { cat /tmp/day05-grade.json; exit 1; }
       - name: Stress and fuzz after grader
         run: python3 ci/day05/test_stress.py /tmp/day05/build/gateway /tmp/day05/ISO8583_Day04_Course_Pack/instructor/reference/schema.sql
