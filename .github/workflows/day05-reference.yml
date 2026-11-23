@@ -39,7 +39,11 @@ jobs:
           cat day05_grader/grade.py
           echo '=== Blackbox test ==='
           cat day05_grader/public/test_day05_gateway.py
-          python3 day05_grader/grade.py --gateway /tmp/day05/build/gateway --report /tmp/day05-grade.json
+          echo '=== Reference schema ==='
+          cat day05_grader/reference/schema.sql
+          echo '=== Public persistence harness ==='
+          sed -n '1,290p' day05_codec_only/tests/public/test_persistence.py
+          python3 day05_grader/grade.py --gateway /tmp/day05/build/gateway --report /tmp/day05-grade.json || { cat /tmp/day05-grade.json; exit 1; }
       - name: Package validated source
         if: success()
         run: |
