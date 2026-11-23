@@ -1,0 +1,36 @@
+name: ISO8583 Day 5 reference validation
+on:
+  push:
+    branches: [feature/iso8583-day05-reference]
+    paths: ['ci/day05/**', '.github/workflows/day05-reference.yml']
+  pull_request:
+    branches: [ci/day04-validation]
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq cmake g++ libboost-dev libsqlite3-dev
+      - name: Extract canonical Day 4 and apply Day 5 changes
+        run: |
+          mkdir -p /tmp/day05
+          unzip -q ci/day04/ISO8583_Day04_Complete_Course_Pack.zip -d /tmp/day05
+          P=/tmp/day05/ISO8583_Day04_Course_Pack/instructor/reference
+          python3 ci/day05/apply_policy.py "$P"
+          cmake -S "$P" -B /tmp/day05/build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build /tmp/day05/build -j 2
+          ctest --test-dir /tmp/day05/build --output-on-failure
+          python3 ci/day05/test_policy.py /tmp/day05/build/gateway "$P/schema.sql"
+      - name: Package validated source
+        if: success()
+        run: |
+          cd /tmp/day05/ISO8583_Day04_Course_Pack/instructor
+          mv reference day05_reference
+          zip -qr "$GITHUB_WORKSPACE/ISO8583_Week10_Day05_Reference.zip" day05_reference
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ISO8583_Week10_Day05_Reference
+          path: ISO8583_Week10_Day05_Reference.zip
