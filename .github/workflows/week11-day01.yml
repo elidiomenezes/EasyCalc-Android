@@ -6,6 +6,8 @@ on:
       - 'iso8583/canonical-gateway/**'
       - 'week11/day01/**'
       - '.github/workflows/week11-day01.yml'
+  pull_request:
+    branches: [canonical/iso8583-gateway-complete]
   workflow_dispatch:
 jobs:
   verify-fixture:
