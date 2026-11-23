@@ -219,7 +219,7 @@ source.write_text(code)
 db_source=root/"src/database.cpp"
 d=db_source.read_text()
 assert 'sqlite3_busy_timeout(db_,400)' in d
-db_source.write_text(d.replace('sqlite3_busy_timeout(db_,400)', 'sqlite3_busy_timeout(db_,400)'))
+db_source.write_text(d.replace('sqlite3_busy_timeout(db_,400)', 'sqlite3_busy_timeout(db_,1000)'))
 schema=root/"schema.sql"
 s=schema.read_text()
 s+='''
