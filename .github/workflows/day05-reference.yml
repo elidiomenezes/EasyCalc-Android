@@ -18,8 +18,6 @@ jobs:
           mkdir -p /tmp/day05
           unzip -q ci/day04/ISO8583_Day04_Complete_Course_Pack.zip -d /tmp/day05
           P=/tmp/day05/ISO8583_Day04_Course_Pack/instructor/reference
-          cp ci/day05/codec/include/iso8583_parser.hpp "$P/include/"
-          cp ci/day05/codec/src/iso8583_parser.cpp "$P/src/"
           python3 ci/day05/apply_policy.py "$P"
           cmake -S "$P" -B /tmp/day05/build -DCMAKE_BUILD_TYPE=Debug
           cmake --build /tmp/day05/build -j 2
