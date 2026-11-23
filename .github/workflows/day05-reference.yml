@@ -33,6 +33,12 @@ jobs:
           git fetch --no-tags origin ci-iso8583-gateway-20261119
           git show FETCH_HEAD:ci/day05-grader-ci.zip > /tmp/day05-grader-ci.zip
           unzip -q /tmp/day05-grader-ci.zip
+          echo '=== Grader file tree ==='
+          find day05_grader -maxdepth 3 -type f | sort
+          echo '=== Runner ==='
+          cat day05_grader/grade.py
+          echo '=== Blackbox test ==='
+          cat day05_grader/public/test_day05_gateway.py
           python3 day05_grader/grade.py --gateway /tmp/day05/build/gateway --report /tmp/day05-grade.json
       - name: Package validated source
         if: success()
