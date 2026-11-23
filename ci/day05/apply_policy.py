@@ -160,10 +160,8 @@ replacement=r'''void Session::start() {
                 const auto response=make_decline(request,reason);
                 std::string output=framed(parser.compose(response));
                 try {
-                    if(reason!="96") {
-                        record_transaction(request,"request");
-                        record_transaction(response,"response");
-                    }
+                    record_transaction(request,"request");
+                    record_transaction(response,"response");
                 } catch(const std::exception& e) {
                     log(std::string("Decline persistence error: ")+e.what());
                 }
@@ -221,7 +219,7 @@ source.write_text(code)
 db_source=root/"src/database.cpp"
 d=db_source.read_text()
 assert 'sqlite3_busy_timeout(db_,400)' in d
-db_source.write_text(d.replace('sqlite3_busy_timeout(db_,400)', 'sqlite3_busy_timeout(db_,1500)'))
+db_source.write_text(d.replace('sqlite3_busy_timeout(db_,400)', 'sqlite3_busy_timeout(db_,400)'))
 schema=root/"schema.sql"
 s=schema.read_text()
 s+='''
