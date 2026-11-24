@@ -24,3 +24,13 @@ jobs:
           cmake -S iso8583/canonical-gateway -B /tmp/fixed -DCMAKE_BUILD_TYPE=Debug
           cmake --build /tmp/fixed -j2
           python3 ci/day05/test_policy.py /tmp/fixed/gateway iso8583/canonical-gateway/schema.sql
+      - name: Retrieve course simulator
+        run: |
+          docker pull ghcr.io/elidiomenezes/iso8583-course:simulator
+          container_id="$(docker create ghcr.io/elidiomenezes/iso8583-course:simulator)"
+          mkdir -p "$RUNNER_TEMP/iso8583-simulator"
+          docker cp "$container_id:/app/." "$RUNNER_TEMP/iso8583-simulator/"
+          docker rm "$container_id"
+          python3 -m pip install --break-system-packages pyiso8583
+      - name: Compare direct, defective and corrected paths
+        run: python3 ci/day05/test_day02_real.py "$RUNNER_TEMP/iso8583-simulator" /tmp/defect/gateway /tmp/fixed/gateway
