@@ -1,0 +1,26 @@
+name: Week 11 Day 2 transport validation
+on:
+  push:
+    branches: [exercise/week11-day02]
+  workflow_dispatch:
+jobs:
+  transport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y libboost-dev libsqlite3-dev
+      - name: Build defective gateway
+        run: |
+          cmake -S iso8583/canonical-gateway -B /tmp/defect -DCMAKE_BUILD_TYPE=Debug
+          cmake --build /tmp/defect -j2
+          ctest --test-dir /tmp/defect --output-on-failure
+      - name: Reproduce defect
+        run: python3 ci/day05/test_day02_defect.py /tmp/defect/gateway
+      - name: Build corrected gateway and verify policy
+        run: |
+          sed -i 's/encode_frame(body,message.size())/encode_frame(body,body.size())/' iso8583/canonical-gateway/src/session.cpp
+          cmake -S iso8583/canonical-gateway -B /tmp/fixed -DCMAKE_BUILD_TYPE=Debug
+          cmake --build /tmp/fixed -j2
+          python3 ci/day05/test_policy.py /tmp/fixed/gateway iso8583/canonical-gateway/schema.sql
