@@ -317,7 +317,11 @@ void Session::start() {
             }
             try { record_transaction(request,"request"); }
             catch(const std::exception& e){log(std::string("Request persistence error: ")+e.what());}
-            if(!write_exact(authorizer_.native_handle(),input,upstream_timeout)) {
+            std::string upstream_frame=input;
+            const auto length=static_cast<unsigned>(upstream_frame.size());
+            upstream_frame[0]=static_cast<char>(length>>8U);
+            upstream_frame[1]=static_cast<char>(length&255U);
+            if(!write_exact(authorizer_.native_handle(),upstream_frame,upstream_timeout)) {
                 log("Upstream send failed or timed out");break;
             }
             std::string output;
