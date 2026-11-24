@@ -223,14 +223,20 @@ bool read_frame(int fd, std::string& frame, int timeout) {
     frame+=body;
     return true;
 }
-std::string framed(const std::string& payload) {
-    if(payload.empty() || payload.size()>65535)throw std::runtime_error("bad payload length");
-    auto n=static_cast<unsigned>(payload.size());
+std::string encode_frame(std::string_view payload, std::size_t n) {
+    if(payload.empty() || n>65535)throw std::runtime_error("bad payload length");
     std::string result;
     result.push_back(static_cast<char>(n>>8));
     result.push_back(static_cast<char>(n&255));
-    result+=payload;
+    result.append(payload);
     return result;
+}
+std::string framed(const std::string& payload) {
+    return encode_frame(payload,payload.size());
+}
+std::string prepare_upstream_frame(const std::string& message) {
+    const std::string_view body(message.data()+2,message.size()-2);
+    return encode_frame(body,message.size());
 }
 bool digits(const std::string& s) {
     return !s.empty() && std::all_of(s.begin(),s.end(),[](unsigned char c){return c>='0' && c<='9';});
@@ -317,10 +323,7 @@ void Session::start() {
             }
             try { record_transaction(request,"request"); }
             catch(const std::exception& e){log(std::string("Request persistence error: ")+e.what());}
-            std::string upstream_frame=input;
-            const auto length=static_cast<unsigned>(upstream_frame.size());
-            upstream_frame[0]=static_cast<char>(length>>8U);
-            upstream_frame[1]=static_cast<char>(length&255U);
+            const auto upstream_frame=prepare_upstream_frame(input);
             if(!write_exact(authorizer_.native_handle(),upstream_frame,upstream_timeout)) {
                 log("Upstream send failed or timed out");break;
             }
