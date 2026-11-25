@@ -37,3 +37,35 @@ jobs:
           python3 nibss_smoke_15.py
       - name: Compare direct, defective and corrected paths
         run: python3 ci/day05/test_day02_real.py "${{ github.workspace }}/simulator-source/iso8583_lab" /tmp/defect/gateway /tmp/fixed/gateway
+      - name: Stage validated lesson sources
+        run: |
+          mkdir -p package/student package/instructor/private_tests
+          cp -a iso8583/canonical-gateway package/instructor/reference_gateway
+          cp -a iso8583/canonical-gateway package/student/gateway
+          sed -i 's/encode_frame(body,body.size())/encode_frame(body,message.size())/' package/student/gateway/src/session.cpp
+          rm -f package/student/gateway/CANONICAL.md package/instructor/reference_gateway/CANONICAL.md
+          rm -f package/student/gateway/tests/test_gateway_integration.py package/instructor/reference_gateway/tests/test_gateway_integration.py
+          rm -rf package/student/gateway/tests/public package/instructor/reference_gateway/tests/public
+          cp -a simulator-source/iso8583_lab package/student/simulator
+          rm -rf package/student/simulator/__pycache__
+          cp ci/day05/test_day02_defect.py ci/day05/test_day02_real.py ci/day05/test_policy.py package/instructor/private_tests/
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('package')
+          for p in root.rglob('*'):
+              if p.is_file() and p.suffix in {'.md','.sh','.py','.json','.yaml','.ps1','.iss'}:
+                  s=p.read_text()
+                  lines=s.splitlines(keepends=True)
+                  filtered=[x for x in lines if not any(v in x.lower() for v in ('github.com/elidiomenezes','ghcr.io/elidiomenezes','easycalc'))]
+                  if filtered!=lines:
+                      if p.suffix in {'.sh','.ps1'}:
+                          p.unlink()
+                      else:
+                          p.write_text(''.join(filtered))
+          PY
+          find package -name '__pycache__' -type d -prune -exec rm -rf {} +
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Week_11_Day_02_sources
+          path: package/
+          include-hidden-files: false
