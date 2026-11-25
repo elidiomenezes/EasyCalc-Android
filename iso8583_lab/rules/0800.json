@@ -10,8 +10,8 @@
     {
       "name": "acknowledge network sign-on",
       "match": {
-        "$date7_now": "^1$",
-        "70": "^001$"
+        "3": "^9D0000$",
+        "$date7_now": "^1$"
       },
       "response": "responses/network-sign-on-approved.json"
     }

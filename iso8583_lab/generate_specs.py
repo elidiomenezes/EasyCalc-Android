@@ -11,6 +11,8 @@ from iso8583.specs import default, default_ascii
 
 
 def write_spec(path: Path, spec: dict) -> None:
+    spec = deepcopy(spec)
+    spec.pop("70", None)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(path)
@@ -93,6 +95,7 @@ def nibss_v116() -> dict:
             max_len=maximum,
             desc=description,
         )
+    spec.pop("70", None)
     return spec
 
 

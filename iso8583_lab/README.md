@@ -435,8 +435,8 @@ NTFS alternate data streams. It refuses to operate on `/`.
   separate response templates so their roles remain obvious in class.
 - Both reversal scenarios carry DE90, forcing primary (`p`) and secondary (`1`)
   bitmaps in the request and response.
-- Network sign-on carries DE70, so `0800 → 0810` also demonstrates primary and
-  secondary bitmaps.
+- Network sign-on uses the NIBSS call-home processing code `9D0000` in DE3.
+  Its request and response use primary bitmaps; the simulator does not support DE70.
 
 These rules belong to this educational profile. They are not universal ISO
 8583 rules and do not represent FIS, Visa, Mastercard, or another processor.

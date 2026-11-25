@@ -30,6 +30,7 @@ def load_spec(path: str | Path) -> dict:
     for required in ("t", "p", "1"):
         if required not in spec:
             raise ValueError(f"ISO 8583 spec {spec_path} is missing entry {required!r}")
+    spec.pop("70", None)
     return spec
 
 
@@ -148,11 +149,15 @@ def make_logger(args: argparse.Namespace, role: str) -> MessageLogger:
 
 
 def encode_message(message: dict[str, str], spec: dict) -> bytes:
+    if "70" in message:
+        raise ValueError("Unsupported data element in course simulator")
+    spec = {k: v for k, v in spec.items() if k != "70"}
     raw, _ = iso8583.encode(message, spec)
     return bytes(raw)
 
 
 def decode_message(raw: bytes, spec: dict) -> dict[str, str]:
+    spec = {k: v for k, v in spec.items() if k != "70"}
     decoded, _ = iso8583.decode(raw, spec)
     return decoded
 

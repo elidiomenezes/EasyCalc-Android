@@ -23,7 +23,6 @@ processor, or card network.
 | `44` | Additional response data | Lab-readable text such as `PAN4=1111,STAN=100001` |
 | `49` | Currency code | Sample numeric currency identifier |
 | `60` | Reserved national | Carries the lab's administrative parameter-status request |
-| `70` | Network management information code | `001` requests network sign-on and forces a secondary bitmap |
 | `90` | Original data elements | Used by reversal and forces a secondary bitmap |
 
 ## MTIs in this lab
@@ -37,8 +36,8 @@ processor, or card network.
 | `0400` | `0410` | Reversal request/response |
 | `0420` | `0430` | Reversal advice/response |
 | `0600` | `0610` | Administrative request/response |
-| `0800` | `0810` | Network-management sign-on/response using DE70 |
-| `0800` | none | Separate one-way network-management demonstration without DE70 |
+| `0800` | `0810` | Network-management call-home/response using DE3 |
+| `0800` | none | Separate one-way network-management demonstration |
 
 The no-response choices are deliberate lab behavior. A real profile may define
 different semantics and response requirements.

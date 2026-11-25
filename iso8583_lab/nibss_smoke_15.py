@@ -29,7 +29,10 @@ def fixture(mti):
     now = datetime.now()
     if mti in ('0800', '0810'):
         msg = {'t': mti, '7': now.strftime('%m%d%H%M%S'),
-               '11': '800001', '70': '001'}
+               '11': '800001', '12': now.strftime('%H%M%S'),
+               '13': now.strftime('%m%d'), '41': 'TERM0001'}
+        if mti == '0800': msg['3'] = '9D0000'
+        else: msg['39'] = '00'
     else:
         msg = json.loads((ROOT / 'messages/nibss-authorization.json').read_text())
         msg['t'] = mti
@@ -97,11 +100,11 @@ def main():
             final = decode_message(recv_frame(upstream, 'binary-2'), spec)
             assert (final['t'], final.get('39')) == ('0110', '00')
             hb = fixture('0800')
-            hb['70'] = '000'
+            hb['3'] = '000000'
             send_frame(upstream, encode_message(hb, spec), 'binary-2')
             reply = decode_message(recv_frame(upstream, 'binary-2'), spec)
             assert (reply['t'], reply.get('39')) == ('0810', '12')
-            print('persistent connection: PASS; heartbeat DE70=000, DE39=12: PASS')
+            print('persistent connection: PASS; heartbeat DE3=000000, DE39=12: PASS')
         assert len(results) == 15
         print('SMOKE PASS: 15 wire MTIs, 6 configured request flows, 9 no-rule cases')
         return 0

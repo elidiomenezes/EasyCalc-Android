@@ -145,7 +145,7 @@ pause_demo
 run_scenario \
     "8B. NETWORK SIGN-ON" \
     client-rules/network-sign-on.json \
-    "Perform a network sign-on using DE70=001 and a secondary bitmap." \
+    "Perform a network call-home using DE3=9D0000." \
     "Two legs: 0800 followed by 0810/DE39=00; both messages contain p and 1."
 pause_demo
 

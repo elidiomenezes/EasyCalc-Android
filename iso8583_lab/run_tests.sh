@@ -118,8 +118,8 @@ run_case \
 run_case \
     "NETWORK SIGN-ON" \
     client-rules/network-sign-on.json \
-    "Perform network sign-on with DE70=001, forcing a secondary bitmap." \
-    "Response MTI 0810, DE39=00, and DE70=001; request and response use two bitmaps."
+    "Perform network call-home with DE3=9D0000." \
+    "Response MTI 0810, DE39=00; request and response use primary bitmaps."
 
 run_case \
     "MTI CONFIGURED WITHOUT RESPONSE" \

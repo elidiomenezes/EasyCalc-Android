@@ -65,6 +65,9 @@ class Iso8583LabTests(unittest.TestCase):
 
     def test_nibss_profile_definitions(self):
         self.assertEqual(NIBSS_SPEC["p"]["data_enc"], "ascii")
+        self.assertNotIn("70", NIBSS_SPEC)
+        with self.assertRaises(ValueError):
+            common.encode_message({"t": "0800", "70": "001"}, NIBSS_SPEC)
         self.assertEqual(NIBSS_SPEC["63"]["len_type"], 4)
         self.assertEqual(NIBSS_SPEC["63"]["max_len"], 9999)
         self.assertEqual(NIBSS_SPEC["123"]["len_type"], 3)
@@ -204,18 +207,21 @@ class Iso8583LabTests(unittest.TestCase):
         self.assertEqual(response["60"], "PARAMETER-STATUS")
         self.assertEqual(rule, "acknowledge administrative request")
 
-    def test_network_sign_on_response_uses_secondary_bitmap(self):
+    def test_network_sign_on_response_uses_primary_bitmap(self):
         request = common.load_message("messages/network-sign-on.json")
         decoded_request = common.decode_message(
             common.encode_message(request, ASCII_SPEC), ASCII_SPEC
         )
-        self.assertIn("1", decoded_request)
-        self.assertEqual(decoded_request["70"], "001")
+        self.assertNotIn("1", decoded_request)
+        self.assertEqual(decoded_request["3"], "9D0000")
+        self.assertNotIn("70", decoded_request)
 
         response, rule, _ = ENGINE.respond(request)
         self.assertEqual(response["t"], "0810")
         self.assertEqual(response["39"], "00")
-        self.assertEqual(response["70"], "001")
+        self.assertNotIn("70", response)
+        self.assertEqual(response["41"], request["41"])
+        self.assertNotIn("1", common.decode_message(common.encode_message(response, NIBSS_SPEC), NIBSS_SPEC))
         self.assertEqual(rule, "acknowledge network sign-on")
 
     def test_reversal_request_response(self):

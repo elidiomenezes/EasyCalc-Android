@@ -1,25 +1,4 @@
 {
-  "h": {
-    "data_enc": "ascii",
-    "len_enc": "ascii",
-    "len_type": 0,
-    "max_len": 0,
-    "desc": "Message Header"
-  },
-  "t": {
-    "data_enc": "ascii",
-    "len_enc": "ascii",
-    "len_type": 0,
-    "max_len": 4,
-    "desc": "Message Type"
-  },
-  "p": {
-    "data_enc": "b",
-    "len_enc": "ascii",
-    "len_type": 0,
-    "max_len": 8,
-    "desc": "Bitmap, Primary"
-  },
   "1": {
     "data_enc": "b",
     "len_enc": "ascii",
@@ -503,13 +482,6 @@
     "max_len": 3,
     "desc": "Settlement Institution Country Code"
   },
-  "70": {
-    "data_enc": "ascii",
-    "len_enc": "ascii",
-    "len_type": 0,
-    "max_len": 3,
-    "desc": "Network Management Information Code"
-  },
   "71": {
     "data_enc": "ascii",
     "len_enc": "ascii",
@@ -915,5 +887,26 @@
     "len_type": 0,
     "max_len": 8,
     "desc": "MAC"
+  },
+  "h": {
+    "data_enc": "ascii",
+    "len_enc": "ascii",
+    "len_type": 0,
+    "max_len": 0,
+    "desc": "Message Header"
+  },
+  "t": {
+    "data_enc": "ascii",
+    "len_enc": "ascii",
+    "len_type": 0,
+    "max_len": 4,
+    "desc": "Message Type"
+  },
+  "p": {
+    "data_enc": "b",
+    "len_enc": "ascii",
+    "len_type": 0,
+    "max_len": 8,
+    "desc": "Bitmap, Primary"
   }
 }
