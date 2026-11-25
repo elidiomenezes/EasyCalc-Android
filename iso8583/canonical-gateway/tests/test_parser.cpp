@@ -8,7 +8,7 @@
 using namespace payment_gateway;
 using Kind=FieldFormat;
 struct Spec { unsigned de; Kind kind; size_t width; };
-const std::vector<Spec> specs={{2,Kind::llvar,19},{3,Kind::fixed,6},{4,Kind::fixed,12},{5,Kind::fixed,12},{7,Kind::fixed,10},{9,Kind::fixed,8},{11,Kind::fixed,6},{12,Kind::fixed,6},{13,Kind::fixed,4},{14,Kind::fixed,4},{15,Kind::fixed,4},{16,Kind::fixed,4},{18,Kind::fixed,4},{22,Kind::fixed,3},{23,Kind::fixed,3},{25,Kind::fixed,2},{26,Kind::fixed,2},{28,Kind::fixed,9},{29,Kind::fixed,9},{30,Kind::fixed,9},{31,Kind::fixed,9},{32,Kind::llvar,11},{33,Kind::llvar,11},{35,Kind::llvar,37},{37,Kind::fixed,12},{38,Kind::fixed,6},{39,Kind::fixed,2},{40,Kind::fixed,3},{41,Kind::fixed,8},{42,Kind::fixed,15},{43,Kind::fixed,40},{44,Kind::llvar,25},{45,Kind::llvar,76},{48,Kind::lllvar,999},{49,Kind::fixed,3},{50,Kind::fixed,3},{52,Kind::fixed,16},{53,Kind::fixed,96},{54,Kind::lllvar,120},{55,Kind::lllvar,510},{56,Kind::lllvar,4},{58,Kind::lllvar,11},{59,Kind::lllvar,255},{60,Kind::lllvar,999},{62,Kind::lllvar,999},{63,Kind::llllvar,9999},{64,Kind::fixed,64},{67,Kind::fixed,2},{70,Kind::fixed,3},{90,Kind::fixed,42},{95,Kind::fixed,42},{98,Kind::fixed,25},{100,Kind::llvar,11},{102,Kind::llvar,28},{103,Kind::llvar,28},{123,Kind::lllvar,15},{124,Kind::llllvar,9999},{128,Kind::fixed,64}};
+const std::vector<Spec> specs={{2,Kind::llvar,19},{3,Kind::fixed,6},{4,Kind::fixed,12},{5,Kind::fixed,12},{7,Kind::fixed,10},{9,Kind::fixed,8},{11,Kind::fixed,6},{12,Kind::fixed,6},{13,Kind::fixed,4},{14,Kind::fixed,4},{15,Kind::fixed,4},{16,Kind::fixed,4},{18,Kind::fixed,4},{22,Kind::fixed,3},{23,Kind::fixed,3},{25,Kind::fixed,2},{26,Kind::fixed,2},{28,Kind::fixed,9},{29,Kind::fixed,9},{30,Kind::fixed,9},{31,Kind::fixed,9},{32,Kind::llvar,11},{33,Kind::llvar,11},{35,Kind::llvar,37},{37,Kind::fixed,12},{38,Kind::fixed,6},{39,Kind::fixed,2},{40,Kind::fixed,3},{41,Kind::fixed,8},{42,Kind::fixed,15},{43,Kind::fixed,40},{44,Kind::llvar,25},{45,Kind::llvar,76},{48,Kind::lllvar,999},{49,Kind::fixed,3},{50,Kind::fixed,3},{52,Kind::fixed,16},{53,Kind::fixed,96},{54,Kind::lllvar,120},{55,Kind::lllvar,510},{56,Kind::lllvar,4},{58,Kind::lllvar,11},{59,Kind::lllvar,255},{60,Kind::lllvar,999},{62,Kind::lllvar,999},{63,Kind::llllvar,9999},{64,Kind::fixed,64},{67,Kind::fixed,2},{90,Kind::fixed,42},{95,Kind::fixed,42},{98,Kind::fixed,25},{100,Kind::llvar,11},{102,Kind::llvar,28},{103,Kind::llvar,28},{123,Kind::lllvar,15},{124,Kind::llllvar,9999},{128,Kind::fixed,64}};
 size_t assertions=0;
 void check(bool x, const std::string& why) { ++assertions; if(!x) throw std::runtime_error(why); }
 template<class F> void must_fail(F&& f,const std::string& why) {
@@ -66,8 +66,8 @@ void single_field(const Spec& e){
 void test_all_fields(){
     const auto tab=Iso8583Parser::nibss_fields();
     size_t count=0;for(auto x:tab) if(x.format!=Kind::unused) ++count;
-    check(count==58,"not 58 fields");
-    check(tab[70].format==Kind::fixed && tab[70].maximum==3,"DE70 format");
+    check(count==57,"not 57 fields");
+    check(tab[70].format==Kind::unused,"DE70 configured");
     for(const auto& e:specs)single_field(e);
     std::vector<unsigned> des;std::string payload="0200";
     for(const auto& e:specs) des.push_back(e.de);
@@ -86,9 +86,7 @@ void other_errors(){
     must_fail([&]{parser.parse("0200GGGGGGGGGGGGGGGG");},"bad primary bitmap");
     must_fail([&]{parser.parse("02008000000000000000GGGGGGGGGGGGGGGG");},"bad secondary bitmap");
     must_fail([&]{parser.parse("02008000000000000000");},"missing secondary bitmap");
-    const auto signon="0800"+bitmap({70})+"001";
-    check(parser.parse(signon).fields[70]=="001","sign-on DE70");
-    check(parser.compose(parser.parse(signon))==signon,"sign-on round trip");
+    must_fail([&]{parser.parse("0800"+bitmap({70})+"001");},"unsupported DE70");
     must_fail([&]{parser.parse("0200"+bitmap({6})+"000000000001");},"unsupported DE6");
     must_fail([&]{parser.parse("0200"+bitmap({3})+"123456X");},"trailing byte");
     size_t offset=std::numeric_limits<size_t>::max();
@@ -107,6 +105,6 @@ void other_errors(){
     check(offset==0,"cursor modified on bad bitmap");
 }
 int main(){
-    try { test_all_fields();other_errors();std::cout<<"PASS: 58 DEs independently, combined 58-DE message, malformed inputs; "<<assertions<<" assertions\n"; }
+    try { test_all_fields();other_errors();std::cout<<"PASS: 57 DEs independently, combined 57-DE message, malformed inputs; "<<assertions<<" assertions\n"; }
     catch(const std::exception& ex){std::cerr<<"FAIL: "<<ex.what()<<" after "<<assertions<<" assertions\n";return 1;}
 }

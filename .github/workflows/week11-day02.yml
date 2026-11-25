@@ -26,8 +26,8 @@ jobs:
           python3 ci/day05/test_policy.py /tmp/fixed/gateway iso8583/canonical-gateway/schema.sql
       - name: Retrieve course simulator
         run: |
-          docker pull ghcr.io/elidiomenezes/iso8583-course:simulator
-          container_id="$(docker create ghcr.io/elidiomenezes/iso8583-course:simulator)"
+          docker pull ghcr.io/elidiomenezes/iso8583-course:simulator-5f2eb6d4d4b30523307ddf1ceaed71b9cd9c5201
+          container_id="$(docker create ghcr.io/elidiomenezes/iso8583-course:simulator-5f2eb6d4d4b30523307ddf1ceaed71b9cd9c5201)"
           mkdir -p "$RUNNER_TEMP/iso8583-simulator"
           docker cp "$container_id:/app/." "$RUNNER_TEMP/iso8583-simulator/"
           docker rm "$container_id"

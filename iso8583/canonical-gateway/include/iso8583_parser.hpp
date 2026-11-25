@@ -41,7 +41,7 @@ public:
     using FieldTable = std::array<FieldSpec, 129>;
     using PresenceMap = std::array<bool, 129>;
 
-    // Construct the NIBSS POS v1.16 layouts and simulator network-management field.
+    // Construct the 57-field union of NIBSS POS v1.16 message layouts.
     // Index 0 is unused. Bit 1 signals a secondary bitmap, rather than DE1
     // carrying an ordinary field value.
     static FieldTable nibss_fields();
