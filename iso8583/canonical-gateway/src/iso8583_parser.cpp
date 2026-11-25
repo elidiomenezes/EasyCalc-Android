@@ -49,7 +49,7 @@ Iso8583Parser::Iso8583Parser(FieldTable fields)
 Iso8583Parser::FieldTable Iso8583Parser::nibss_fields() {
     FieldTable table{};
     // NIBSS POS Interface v1.16, union of message layouts in section 3.
-    // DE70 is not in those layouts and is deliberately not configured.
+    // The course simulator also uses DE70 for network management.
     table[2] = {FieldFormat::llvar, 19};
     table[3] = {FieldFormat::fixed, 6};
     table[4] = {FieldFormat::fixed, 12};
@@ -98,6 +98,7 @@ Iso8583Parser::FieldTable Iso8583Parser::nibss_fields() {
     table[63] = {FieldFormat::llllvar, 9999};
     table[64] = {FieldFormat::fixed, 64};
     table[67] = {FieldFormat::fixed, 2};
+    table[70] = {FieldFormat::fixed, 3};
     table[90] = {FieldFormat::fixed, 42};
     table[95] = {FieldFormat::fixed, 42};
     table[98] = {FieldFormat::fixed, 25};
