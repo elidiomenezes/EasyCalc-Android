@@ -27,7 +27,7 @@ jobs:
       - name: Checkout exact simulator source
         uses: actions/checkout@v4
         with:
-          ref: 5f2eb6d4d4b30523307ddf1ceaed71b9cd9c5201
+          ref: 316b2ac062477f9e53c91c3948488ba7116b8c65
           path: simulator-source
       - name: Validate simulator source
         run: |
