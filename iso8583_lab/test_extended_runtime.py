@@ -2,7 +2,7 @@ import json, socket, struct, threading, time, unittest
 from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
-from iso8583_common import load_spec, encode_message, decode_message
+from iso8583_common import load_spec, load_message, encode_message, decode_message
 from tcp_framing import recv_frame, send_frame
 from server import IsoServer
 
@@ -37,11 +37,7 @@ class RuntimeTests(unittest.TestCase):
     self.assertEqual(r['t'],'0110');self.assertEqual(r['11'],m['11'])
  def test_03_heartbeat_invalid_transaction_then_authorization(self):
   with self.connect() as s:
-   m={'t':'0800','7':'1114213526','11':'123456','12':'213526','13':'1114','41':'TERM0001','3':'000000'}
-   # use NIBSS network template as source of valid required fields
-   template=ROOT/'messages/network-sign-on.json'
-   if template.exists():
-    m=json.loads(template.read_text());m['3']='000000';m['7']=datetime.now().strftime('%m%d%H%M%S')
+   m=load_message(ROOT/'messages/network-heartbeat.json')
    r=self.request(s,m)
    self.assertEqual((r['t'],r.get('39')),('0810','12'))
    r2=self.request(s,self.msg);self.assertEqual(r2['t'],'0110')
